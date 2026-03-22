@@ -38,7 +38,8 @@ public class PlanningFragment extends Fragment {
     private final TaskSelectAdapter selectAdapter = new TaskSelectAdapter();
     private final UnscheduledRowAdapter unscheduledAdapter = new UnscheduledRowAdapter();
 
-    private final List<Task> backlogCache = new ArrayList<>();
+    /** Tâches encore disponibles pour le jour courant (hors planning de ce jour). */
+    private final List<Task> availableForDayCache = new ArrayList<>();
     private List<ScheduledTaskWithTask> lastScheduled = new ArrayList<>();
     private long dayMillis;
 
@@ -76,10 +77,10 @@ public class PlanningFragment extends Fragment {
 
         selectAdapter.setListener(this::updateSummaryFromSelection);
 
-        repository.observeBacklog().observe(getViewLifecycleOwner(), tasks -> {
-            backlogCache.clear();
+        planningViewModel.tasksAvailableForDay.observe(getViewLifecycleOwner(), tasks -> {
+            availableForDayCache.clear();
             if (tasks != null) {
-                backlogCache.addAll(tasks);
+                availableForDayCache.addAll(tasks);
             }
             selectAdapter.submit(tasks);
             unscheduledAdapter.submit(tasks);
@@ -135,15 +136,15 @@ public class PlanningFragment extends Fragment {
     private void updateSummaryFromSelection() {
         Set<Long> sel = selectAdapter.getSelectedIds();
         int selected = sel.size();
-        int backlogSize = backlogCache.size();
+        int poolSize = availableForDayCache.size();
         int selHours = selectAdapter.selectedDurationHours();
 
         int totalPoolHours = 0;
-        for (Task t : backlogCache) {
+        for (Task t : availableForDayCache) {
             totalPoolHours += t.getDurationHours();
         }
 
-        int denom = Math.max(backlogSize, selected);
+        int denom = Math.max(poolSize, selected);
         binding.summaryTasksRatio.setText(getString(R.string.tasks_selected_ratio, selected, denom));
         binding.summaryHoursRatio.setText(getString(R.string.hours_volume_ratio,
                 getString(R.string.duration_hours_short, selHours),

@@ -40,8 +40,14 @@ public class AgendaRepository {
         this.reminderScheduler = new TaskReminderScheduler(ctx);
     }
 
-    public LiveData<List<Task>> observeBacklog() {
-        return taskDao.observeBacklog();
+    /** Bibliothèque : toutes les tâches créées. */
+    public LiveData<List<Task>> observeAllTasks() {
+        return taskDao.observeAllTasks();
+    }
+
+    /** Tâches qu’on peut encore ajouter au jour choisi (pas encore planifiées ce jour-là). */
+    public LiveData<List<Task>> observeTasksAvailableForDay(long dayMillis) {
+        return taskDao.observeAvailableForDay(dayMillis);
     }
 
     public LiveData<List<ScheduledTaskWithTask>> observeScheduledForDay(long dayMillis) {
@@ -75,6 +81,9 @@ public class AgendaRepository {
             for (Long taskId : taskIdsInOrder) {
                 Task task = taskDao.getById(taskId);
                 if (task == null) {
+                    continue;
+                }
+                if (scheduledDao.countForTaskAndDay(taskId, dayMillis) > 0) {
                     continue;
                 }
                 int duration = task.durationMinutes();

@@ -14,7 +14,7 @@ import androidx.room.PrimaryKey;
                 onDelete = ForeignKey.CASCADE
         ),
         indices = {
-                @Index(value = "taskId", unique = true),
+                @Index(value = {"taskId", "dayMillis"}, unique = true),
                 @Index("dayMillis")
         }
 )

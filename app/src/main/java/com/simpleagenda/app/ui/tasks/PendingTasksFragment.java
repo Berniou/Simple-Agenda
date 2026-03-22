@@ -48,7 +48,7 @@ public class PendingTasksFragment extends Fragment {
         binding.recyclerTasks.setAdapter(adapter);
         binding.recyclerTasks.setNestedScrollingEnabled(false);
 
-        repository.observeBacklog().observe(getViewLifecycleOwner(), this::onBacklog);
+        repository.observeAllTasks().observe(getViewLifecycleOwner(), this::onBacklog);
 
         binding.fabAdd.setOnClickListener(v -> openNewTask());
         binding.cardAddPlaceholder.setOnClickListener(v -> openNewTask());

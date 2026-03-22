@@ -25,6 +25,9 @@ public interface ScheduledTaskDao {
     @Query("SELECT * FROM scheduled_tasks WHERE id = :id")
     ScheduledTask getById(long id);
 
+    @Query("SELECT COUNT(*) FROM scheduled_tasks WHERE taskId = :taskId AND dayMillis = :dayMillis")
+    int countForTaskAndDay(long taskId, long dayMillis);
+
     @Transaction
     @Query("SELECT * FROM scheduled_tasks WHERE dayMillis = :dayMillis ORDER BY startMinutesFromMidnight ASC")
     LiveData<List<ScheduledTaskWithTask>> observeForDay(long dayMillis);

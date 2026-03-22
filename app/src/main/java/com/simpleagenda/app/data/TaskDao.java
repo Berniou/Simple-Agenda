@@ -13,11 +13,15 @@ public interface TaskDao {
     @Insert
     long insert(Task task);
 
-    @Query("SELECT * FROM tasks WHERE id NOT IN (SELECT taskId FROM scheduled_tasks) ORDER BY id DESC")
-    LiveData<List<Task>> observeBacklog();
+    /** Toutes les tâches créées (bibliothèque, replanifiables). */
+    @Query("SELECT * FROM tasks ORDER BY id DESC")
+    LiveData<List<Task>> observeAllTasks();
 
-    @Query("SELECT * FROM tasks WHERE id NOT IN (SELECT taskId FROM scheduled_tasks) ORDER BY id DESC")
-    List<Task> getBacklogSync();
+    /**
+     * Tâches encore disponibles pour une journée donnée (pas encore placées ce jour-là).
+     */
+    @Query("SELECT * FROM tasks WHERE id NOT IN (SELECT taskId FROM scheduled_tasks WHERE dayMillis = :dayMillis) ORDER BY id DESC")
+    LiveData<List<Task>> observeAvailableForDay(long dayMillis);
 
     @Query("SELECT * FROM tasks WHERE id = :id")
     Task getById(long id);

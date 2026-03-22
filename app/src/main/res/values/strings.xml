@@ -20,7 +20,7 @@
     <!-- Liste des tâches -->
     <string name="pending_tasks_title">Tâches en attente</string>
     <string name="productivity_reserve">Réserve de productivité</string>
-    <string name="free_tasks_count">%1$d tâche(s) libre(s)</string>
+    <string name="free_tasks_count">%1$d tâche(s)</string>
     <string name="total_duration">Durée totale</string>
     <string name="high_priority">Priorité haute</string>
     <string name="add_custom_task">Ajouter une tâche personnalisée</string>
