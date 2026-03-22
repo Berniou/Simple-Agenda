@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="2dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="14dp">
+
+        <TextView
+            android:id="@+id/task_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@+id/accent_bar"
+            android:textStyle="bold"
+            tools:text="Finaliser les wireframes UX" />
+
+        <LinearLayout
+            android:id="@+id/duration_row"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/task_title"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:contentDescription="@null"
+                android:src="@android:drawable/ic_menu_recent_history"
+                app:tint="@color/on_surface_muted" />
+
+            <TextView
+                android:id="@+id/task_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:textColor="@color/on_surface_muted"
+                android:textSize="13sp"
+                tools:text="3h" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/accent_bar"
+            android:layout_width="8dp"
+            android:layout_height="match_parent"
+            android:layout_alignTop="@id/task_title"
+            android:layout_alignBottom="@id/duration_row"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/bg_accent_bar" />
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

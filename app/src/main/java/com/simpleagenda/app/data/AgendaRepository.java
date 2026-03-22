@@ -1,0 +1,195 @@
+package com.simpleagenda.app.data;
+
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
+
+import com.simpleagenda.app.notifications.TaskReminderScheduler;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/**
+ * Règles métier : file d’attente, placement sans chevauchement, déplacement sur la grille.
+ */
+public class AgendaRepository {
+
+    public static final int DAY_START_MINUTES = 6 * 60;
+    public static final int DAY_END_MINUTES = 22 * 60;
+    public static final int DEFAULT_FIRST_SLOT_MINUTES = 8 * 60;
+    public static final int SNAP_STEP_MINUTES = 15;
+
+    private final TaskDao taskDao;
+    private final ScheduledTaskDao scheduledDao;
+    private final TaskReminderScheduler reminderScheduler;
+    private final ExecutorService io = Executors.newSingleThreadExecutor();
+    private final Handler main = new Handler(Looper.getMainLooper());
+
+    public AgendaRepository(@NonNull Context appContext, @NonNull AppDatabase db) {
+        Context ctx = appContext.getApplicationContext();
+        this.taskDao = db.taskDao();
+        this.scheduledDao = db.scheduledTaskDao();
+        this.reminderScheduler = new TaskReminderScheduler(ctx);
+    }
+
+    public LiveData<List<Task>> observeBacklog() {
+        return taskDao.observeBacklog();
+    }
+
+    public LiveData<List<ScheduledTaskWithTask>> observeScheduledForDay(long dayMillis) {
+        return scheduledDao.observeForDay(dayMillis);
+    }
+
+    public void insertTask(@NonNull Task task, @NonNull Runnable onDone) {
+        io.execute(() -> {
+            taskDao.insert(task);
+            main.post(onDone);
+        });
+    }
+
+    public void scheduleTasksForDay(long dayMillis, @NonNull List<Long> taskIdsInOrder,
+                                    @NonNull Runnable onDone,
+                                    @Nullable Runnable onNoRoom) {
+        io.execute(() -> {
+            List<ScheduledTaskWithTask> existing = scheduledDao.getForDaySync(dayMillis);
+            List<Interval> busy = new ArrayList<>();
+            for (ScheduledTaskWithTask st : existing) {
+                Task t = st.getTask();
+                if (t == null) {
+                    continue;
+                }
+                int s = st.getScheduled().getStartMinutesFromMidnight();
+                busy.add(new Interval(s, s + t.durationMinutes()));
+            }
+            Collections.sort(busy, Comparator.comparingInt(a -> a.start));
+
+            boolean anyPlaced = false;
+            for (Long taskId : taskIdsInOrder) {
+                Task task = taskDao.getById(taskId);
+                if (task == null) {
+                    continue;
+                }
+                int duration = task.durationMinutes();
+                int slot = findNextSlot(duration, busy);
+                if (slot < 0) {
+                    continue;
+                }
+                ScheduledTask row = new ScheduledTask();
+                row.setTaskId(taskId);
+                row.setDayMillis(dayMillis);
+                row.setStartMinutesFromMidnight(slot);
+                scheduledDao.insert(row);
+                busy.add(new Interval(slot, slot + duration));
+                Collections.sort(busy, Comparator.comparingInt(a -> a.start));
+                anyPlaced = true;
+            }
+            reminderScheduler.scheduleAllForDay(dayMillis);
+            final boolean placed = anyPlaced;
+            final boolean hadIds = !taskIdsInOrder.isEmpty();
+            main.post(() -> {
+                if (!placed && onNoRoom != null && hadIds) {
+                    onNoRoom.run();
+                } else {
+                    onDone.run();
+                }
+            });
+        });
+    }
+
+    public void moveScheduled(long scheduledId, int rawStartMinutes,
+                              @NonNull Runnable onSuccess,
+                              @NonNull java.util.function.Consumer<String> onError) {
+        io.execute(() -> {
+            ScheduledTask st = scheduledDao.getById(scheduledId);
+            if (st == null) {
+                main.post(() -> onError.accept("Introuvable"));
+                return;
+            }
+            Task task = taskDao.getById(st.getTaskId());
+            if (task == null) {
+                main.post(() -> onError.accept("Introuvable"));
+                return;
+            }
+            int snapped = snapToGrid(rawStartMinutes);
+            int duration = task.durationMinutes();
+            List<ScheduledTaskWithTask> day = scheduledDao.getForDaySync(st.getDayMillis());
+            if (!canPlace(st.getId(), snapped, duration, day)) {
+                main.post(() -> onError.accept("overlap"));
+                return;
+            }
+            st.setStartMinutesFromMidnight(snapped);
+            scheduledDao.update(st);
+            reminderScheduler.reschedule(st.getId());
+            main.post(onSuccess);
+        });
+    }
+
+    /**
+     * @param excludeScheduledId id de {@link ScheduledTask} à ignorer (bloc déplacé)
+     */
+    public boolean canPlace(long excludeScheduledId, int start, int durationMinutes,
+                            @NonNull List<ScheduledTaskWithTask> sameDay) {
+        int end = start + durationMinutes;
+        if (start < DAY_START_MINUTES || end > DAY_END_MINUTES) {
+            return false;
+        }
+        for (ScheduledTaskWithTask st : sameDay) {
+            if (st.getScheduled().getId() == excludeScheduledId) {
+                continue;
+            }
+            Task t = st.getTask();
+            if (t == null) {
+                continue;
+            }
+            int os = st.getScheduled().getStartMinutesFromMidnight();
+            int oe = os + t.durationMinutes();
+            if (start < oe && os < end) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static int snapToGrid(int minutes) {
+        int snapped = (minutes / SNAP_STEP_MINUTES) * SNAP_STEP_MINUTES;
+        return Math.max(DAY_START_MINUTES, Math.min(snapped, DAY_END_MINUTES - SNAP_STEP_MINUTES));
+    }
+
+    private static int findNextSlot(int durationMinutes, @NonNull List<Interval> busy) {
+        if (busy.isEmpty()) {
+            if (DEFAULT_FIRST_SLOT_MINUTES + durationMinutes <= DAY_END_MINUTES) {
+                return DEFAULT_FIRST_SLOT_MINUTES;
+            }
+            return -1;
+        }
+        int cursor = DEFAULT_FIRST_SLOT_MINUTES;
+        for (Interval i : busy) {
+            if (cursor + durationMinutes <= i.start) {
+                return Math.max(cursor, DAY_START_MINUTES);
+            }
+            cursor = Math.max(cursor, i.end);
+        }
+        if (cursor + durationMinutes <= DAY_END_MINUTES) {
+            return cursor;
+        }
+        return -1;
+    }
+
+    private static final class Interval {
+        final int start;
+        final int end;
+
+        Interval(int start, int end) {
+            this.start = start;
+            this.end = end;
+        }
+    }
+}

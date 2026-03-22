@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simple Agenda</string>
+
+    <!-- Navigation -->
+    <string name="nav_tasks">Tâches</string>
+    <string name="nav_planning">Planning</string>
+
+    <!-- Nouvelle tâche -->
+    <string name="new_task_title">Nouvelle tâche</string>
+    <string name="task_title_label">Titre de la tâche</string>
+    <string name="task_title_hint">Que faut-il faire ?</string>
+    <string name="color_label">Étiquette de couleur</string>
+    <string name="estimated_duration">Durée estimée</string>
+    <string name="duration_selected_format">%1$d heure(s) sélectionnée(s)</string>
+    <string name="description_label">Description</string>
+    <string name="description_hint">Ajouter des notes ou des détails spécifiques sur cette tâche…</string>
+    <string name="save_task">Enregistrer la tâche</string>
+
+    <!-- Liste des tâches -->
+    <string name="pending_tasks_title">Tâches en attente</string>
+    <string name="productivity_reserve">Réserve de productivité</string>
+    <string name="free_tasks_count">%1$d tâche(s) libre(s)</string>
+    <string name="total_duration">Durée totale</string>
+    <string name="high_priority">Priorité haute</string>
+    <string name="add_custom_task">Ajouter une tâche personnalisée</string>
+    <string name="duration_hours_short">%1$dh</string>
+    <string name="duration_hours_minutes">%1$dh %2$02dm</string>
+
+    <!-- Sélection -->
+    <string name="selection_title">Sélection et ajout</string>
+    <string name="selection_subtitle">Touchez pour sélectionner les tâches à planifier</string>
+    <string name="day_summary">Résumé du jour</string>
+    <string name="tasks_selected_ratio">%1$d / %2$d</string>
+    <string name="tasks_selected_label">tâches sélectionnées</string>
+    <string name="hours_volume_ratio">%1$s / %2$s</string>
+    <string name="hours_volume_label">volume horaire total</string>
+    <string name="plan_action">Planifier</string>
+    <string name="plan_success">Tâches ajoutées au planning</string>
+
+    <!-- Planning -->
+    <string name="focus_of_day">Focus du jour</string>
+    <string name="scheduled_time">Planifié</string>
+    <string name="scheduled_tasks_count">%1$d tâche(s)</string>
+    <string name="unscheduled_tasks">Tâches non planifiées</string>
+    <string name="unscheduled_time">Temps non planifié</string>
+    <string name="today_format">EEEE d MMMM</string>
+    <string name="time_range_format">%1$s — %2$s</string>
+
+    <!-- Notifications -->
+    <string name="channel_tasks_name">Rappels d’activités</string>
+    <string name="channel_tasks_desc">Alertes pour les tâches planifiées</string>
+    <string name="notification_task_title">Rappel : %1$s</string>
+    <string name="notification_task_text">Commence à %1$s</string>
+    <string name="alarm_dismiss">Fermer</string>
+    <string name="alarm_open_planning">Voir le planning</string>
+
+    <!-- Erreurs -->
+    <string name="error_overlap">Impossible de placer la tâche : cette plage chevauche une autre.</string>
+    <string name="error_bounds">Hors plage horaire autorisée pour la journée.</string>
+    <string name="error_no_slot">Aucun créneau disponible pour placer ces tâches.</string>
+</resources>

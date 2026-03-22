@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#F5F7F8</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="primary">#1E6BB8</color>
+    <color name="primary_dark">#154A82</color>
+    <color name="on_surface">#1C1C1C</color>
+    <color name="on_surface_muted">#6B7280</color>
+    <color name="divider">#E5E7EB</color>
+
+    <!-- Pastels (alignés maquettes) -->
+    <color name="task_blue_light">#D6EBFF</color>
+    <color name="task_blue_dark">#80C5F4</color>
+    <color name="task_green_light">#D9F5E3</color>
+    <color name="task_green_dark">#B8EBC6</color>
+    <color name="task_orange_light">#FFF2DF</color>
+    <color name="task_orange_dark">#FFD18A</color>
+    <color name="task_coral_light">#FFE4E2</color>
+    <color name="task_coral_dark">#FF7E79</color>
+    <color name="task_gray_light">#EEF2F5</color>
+    <color name="task_gray_dark">#DDE4E9</color>
+</resources>

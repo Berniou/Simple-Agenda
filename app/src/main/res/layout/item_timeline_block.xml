@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/block_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/on_surface_muted"
+            android:textSize="12sp"
+            tools:text="08:00 — 11:00" />
+
+        <ImageView
+            android:id="@+id/block_handle"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentEnd="true"
+            android:contentDescription="@null"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            app:tint="@color/on_surface_muted" />
+
+        <TextView
+            android:id="@+id/block_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/block_time"
+            android:layout_marginTop="6dp"
+            android:textStyle="bold"
+            tools:text="Tâche" />
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>
