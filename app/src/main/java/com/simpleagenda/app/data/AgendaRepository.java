@@ -185,6 +185,90 @@ public class AgendaRepository {
     }
 
     /**
+     * Moves a scheduled task and reorders other conflicting tasks automatically.
+     * When a task is moved to a new position, any overlapping tasks are shifted
+     * to make room, creating a cascading reorder effect.
+     */
+    public void moveScheduledWithReorder(long scheduledId, int rawStartMinutes,
+                                        @NonNull Runnable onSuccess,
+                                        @NonNull java.util.function.Consumer<String> onError) {
+        io.execute(() -> {
+            ScheduledTask st = scheduledDao.getById(scheduledId);
+            if (st == null) {
+                main.post(() -> onError.accept("Introuvable"));
+                return;
+            }
+            Task task = taskDao.getById(st.getTaskId());
+            if (task == null) {
+                main.post(() -> onError.accept("Introuvable"));
+                return;
+            }
+            int snapped = snapToGrid(rawStartMinutes);
+            int duration = task.durationMinutes();
+            long dayMillis = st.getDayMillis();
+            List<ScheduledTaskWithTask> day = scheduledDao.getForDaySync(dayMillis);
+
+            // Check if new position is within bounds
+            if (snapped < DAY_START_MINUTES || snapped + duration > DAY_END_MINUTES) {
+                main.post(() -> onError.accept("bounds"));
+                return;
+            }
+
+            // Find overlapping tasks and reorder them
+            List<ScheduledTaskWithTask> toMove = new ArrayList<>();
+            for (ScheduledTaskWithTask stWithTask : day) {
+                if (stWithTask.getScheduled().getId() == scheduledId) {
+                    continue;
+                }
+                Task t = stWithTask.getTask();
+                if (t == null) {
+                    continue;
+                }
+                int existingStart = stWithTask.getScheduled().getStartMinutesFromMidnight();
+                int existingEnd = existingStart + t.durationMinutes();
+                int newEnd = snapped + duration;
+
+                // Check if there's an overlap
+                if (snapped < existingEnd && existingStart < newEnd) {
+                    toMove.add(stWithTask);
+                }
+            }
+
+            // Sort tasks by start time to determine direction
+            Collections.sort(toMove, (a, b) ->
+                    Integer.compare(a.getScheduled().getStartMinutesFromMidnight(),
+                                   b.getScheduled().getStartMinutesFromMidnight()));
+
+            // Move the main task
+            st.setStartMinutesFromMidnight(snapped);
+            scheduledDao.update(st);
+
+            // Reorder affected tasks
+            int newEnd = snapped + duration;
+            for (ScheduledTaskWithTask toReorder : toMove) {
+                ScheduledTask stToMove = toReorder.getScheduled();
+                Task tToMove = toReorder.getTask();
+                if (tToMove == null) {
+                    continue;
+                }
+                int currentStart = stToMove.getStartMinutesFromMidnight();
+                int durationToMove = tToMove.durationMinutes();
+
+                // Move task to right after the moved task
+                int newStart = newEnd;
+                if (newStart + durationToMove <= DAY_END_MINUTES) {
+                    stToMove.setStartMinutesFromMidnight(newStart);
+                    scheduledDao.update(stToMove);
+                    newEnd = newStart + durationToMove;
+                }
+            }
+
+            reminderScheduler.scheduleAllForDay(dayMillis);
+            main.post(onSuccess);
+        });
+    }
+
+    /**
      * @param excludeScheduledId id de {@link ScheduledTask} à ignorer (bloc déplacé)
      */
     public boolean canPlace(long excludeScheduledId, int start, int durationMinutes,

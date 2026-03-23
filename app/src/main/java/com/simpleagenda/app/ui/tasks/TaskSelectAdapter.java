@@ -7,9 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
@@ -18,6 +18,7 @@ import com.simpleagenda.app.data.Task;
 import com.simpleagenda.app.ui.common.TaskPalette;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +33,7 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
     private final List<Task> items = new ArrayList<>();
     private final Set<Long> selected = new HashSet<>();
     private Listener listener;
+    private RecyclerView recyclerView;
 
     public void setListener(Listener listener) {
         this.listener = listener;
@@ -68,11 +70,26 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
         return sum;
     }
 
+    public void moveItem(int from, int to) {
+        Collections.swap(items, from, to);
+        notifyItemMoved(from, to);
+    }
+
     @NonNull
     @Override
     public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_task_select, parent, false);
         return new Holder(v);
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        this.recyclerView = recyclerView;
+        
+        ItemTouchHelper.Callback callback = new DragCallback();
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
     }
 
     @Override
@@ -106,16 +123,8 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
             }
         });
 
-        holder.itemView.setOnLongClickListener(v -> {
-            if (!selected.contains(t.getId())) {
-                Toast.makeText(v.getContext(), R.string.select_task_first, Toast.LENGTH_SHORT).show();
-                return true;
-            }
-            ClipData clip = ClipData.newPlainText("task_id", String.valueOf(t.getId()));
-            View.DragShadowBuilder shadow = new View.DragShadowBuilder(holder.card);
-            v.startDragAndDrop(clip, shadow, null, 0);
-            return true;
-        });
+        holder.taskId = t.getId();
+        holder.card.setLongClickable(true);
     }
 
     @Override
@@ -128,6 +137,7 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
         final ImageView state;
         final TextView duration;
         final TextView title;
+        long taskId;
 
         Holder(@NonNull View itemView) {
             super(itemView);
@@ -137,4 +147,31 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
             title = itemView.findViewById(R.id.select_title);
         }
     }
+
+    private class DragCallback extends ItemTouchHelper.Callback {
+        @Override
+        public boolean isLongPressDragEnabled() {
+            return true;
+        }
+
+        @Override
+        public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+            int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+            return makeMovementFlags(dragFlags, 0);
+        }
+
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            int from = viewHolder.getAdapterPosition();
+            int to = target.getAdapterPosition();
+            moveItem(from, to);
+            return true;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            // No swipe functionality
+        }
+    }
 }
+

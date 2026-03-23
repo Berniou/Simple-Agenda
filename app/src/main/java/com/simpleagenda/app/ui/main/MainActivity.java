@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        NotificationHelper.ensureChannels(this);
+        //NotificationHelper.ensureChannels(this);
         requestNotificationPermissionIfNeeded();
 
         if (savedInstanceState == null) {

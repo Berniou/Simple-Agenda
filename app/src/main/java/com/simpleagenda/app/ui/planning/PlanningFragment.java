@@ -80,13 +80,13 @@ public class PlanningFragment extends Fragment {
         unscheduledAdapter.setDragPermission(taskId -> selectAdapter.getSelectedIds().contains(taskId));
 
         binding.dayTimeline.setMoveListener((scheduledId, newStart) ->
-                repository.moveScheduled(
+                repository.moveScheduledWithReorder(
                         scheduledId,
                         newStart,
                         () -> { },
                         err -> {
-                            if ("overlap".equals(err)) {
-                                Toast.makeText(requireContext(), R.string.error_overlap, Toast.LENGTH_SHORT).show();
+                            if ("bounds".equals(err)) {
+                                Toast.makeText(requireContext(), R.string.error_bounds, Toast.LENGTH_SHORT).show();
                             }
                             binding.dayTimeline.setBlocks(lastScheduled);
                         }
