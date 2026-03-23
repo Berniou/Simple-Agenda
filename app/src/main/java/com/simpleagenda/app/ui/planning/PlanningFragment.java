@@ -31,6 +31,8 @@ import java.util.Locale;
 import java.util.Set;
 
 public class PlanningFragment extends Fragment {
+    private static final int MAX_TASKS_PER_DAY = 6;
+    private static final int MAX_HOURS_PER_DAY = 12;
 
     private FragmentPlanningBinding binding;
     private AgendaRepository repository;
@@ -153,20 +155,17 @@ public class PlanningFragment extends Fragment {
     private void updateSummaryFromSelection() {
         Set<Long> sel = selectAdapter.getSelectedIds();
         int selected = sel.size();
-        int poolSize = availableForDayCache.size();
         int selHours = selectAdapter.selectedDurationHours();
 
-        int totalPoolHours = 0;
-        for (Task t : availableForDayCache) {
-            totalPoolHours += t.getDurationHours();
-        }
-
-        int denom = Math.max(poolSize, selected);
-        binding.summaryTasksRatio.setText(getString(R.string.tasks_selected_ratio, selected, denom));
+        binding.summaryTasksRatio.setText(getString(
+                R.string.tasks_selected_ratio,
+                selected,
+                MAX_TASKS_PER_DAY
+        ));
         binding.summaryHoursRatio.setText(getString(R.string.hours_volume_ratio,
                 getString(R.string.duration_hours_short, selHours),
-                getString(R.string.duration_hours_short, totalPoolHours)));
-        int progress = totalPoolHours == 0 ? 0 : (int) (100f * selHours / totalPoolHours);
+                getString(R.string.duration_hours_short, MAX_HOURS_PER_DAY)));
+        int progress = (int) Math.min(100f, (100f * selHours) / MAX_HOURS_PER_DAY);
         binding.summaryProgress.setProgressCompat(progress, true);
     }
 
