@@ -22,6 +22,9 @@ public interface ScheduledTaskDao {
     @Delete
     void delete(ScheduledTask scheduled);
 
+    @Query("DELETE FROM scheduled_tasks WHERE dayMillis = :dayMillis")
+    void deleteForDay(long dayMillis);
+
     @Query("SELECT * FROM scheduled_tasks WHERE id = :id")
     ScheduledTask getById(long id);
 

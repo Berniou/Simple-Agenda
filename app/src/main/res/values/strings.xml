@@ -38,7 +38,9 @@
     <string name="hours_volume_ratio">%1$s / %2$s</string>
     <string name="hours_volume_label">volume horaire total</string>
     <string name="plan_action">Planifier</string>
+    <string name="clear_day_action">Effacer la journée</string>
     <string name="plan_success">Tâches ajoutées au planning</string>
+    <string name="clear_day_success">Toutes les tâches du jour ont été supprimées</string>
 
     <!-- Planning -->
     <string name="focus_of_day">Focus du jour</string>

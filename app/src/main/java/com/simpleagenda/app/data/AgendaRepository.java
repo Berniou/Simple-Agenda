@@ -188,6 +188,13 @@ public class AgendaRepository {
         });
     }
 
+    public void clearScheduledForDay(long dayMillis, @NonNull Runnable onDone) {
+        io.execute(() -> {
+            scheduledDao.deleteForDay(dayMillis);
+            main.post(onDone);
+        });
+    }
+
     /**
      * Moves a scheduled task and reorders other conflicting tasks automatically.
      * When a task is moved to a new position, any overlapping tasks are shifted

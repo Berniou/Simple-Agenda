@@ -296,6 +296,29 @@ public class DayTimelineView extends FrameLayout {
         return Math.round((startMinutes - dayStartMin) * pxPerMinute);
     }
 
+    private int snapToGrid(int minutes) {
+        int relative = minutes - dayStartMin;
+        int snapped = Math.round(relative / (float) MINUTES_BLOCK_SIZE) * MINUTES_BLOCK_SIZE;
+        return dayStartMin + snapped;
+    }
+
+    private int ceilToGrid(int minutes) {
+        int relative = minutes - dayStartMin;
+        int snapped = ((relative + MINUTES_BLOCK_SIZE - 1) / MINUTES_BLOCK_SIZE) * MINUTES_BLOCK_SIZE;
+        return dayStartMin + snapped;
+    }
+
+    private int floorToGrid(int minutes) {
+        int relative = minutes - dayStartMin;
+        int snapped = Math.max(0, (relative / MINUTES_BLOCK_SIZE) * MINUTES_BLOCK_SIZE);
+        return dayStartMin + snapped;
+    }
+
+    private int clampStart(int startMinutes, int durationMinutes) {
+        int maxStart = dayEndMin - durationMinutes;
+        return Math.max(dayStartMin, Math.min(startMinutes, maxStart));
+    }
+
     private List<BlockInfo> getSortedBlocks() {
         List<BlockInfo> blocks = new ArrayList<>(blockMap.values());
         Collections.sort(blocks, Comparator.comparingInt(info -> info.currentStart));
@@ -397,13 +420,16 @@ public class DayTimelineView extends FrameLayout {
 
         private void beginDrag(@NonNull BlockInfo info) {
             previewOrder.clear();
+            originalStarts.clear();
             previewSlotStarts.clear();
             List<BlockInfo> sorted = getSortedBlocks();
             for (BlockInfo block : sorted) {
                 previewOrder.add(block.scheduledId);
+                originalStarts.put(block.scheduledId, block.currentStart);
                 previewSlotStarts.put(block.scheduledId, block.currentStart);
             }
             targetIndex = previewOrder.indexOf(scheduledId);
+            lastPreviewDraggedStart = dragStartMinutes;
             lastUpdateMinutesBlock = dragStartMinutes / MINUTES_BLOCK_SIZE;
             activeCard.bringToFront();
             activeCard.setPressed(true);
@@ -420,9 +446,7 @@ public class DayTimelineView extends FrameLayout {
                     activeCard.getHeight()
             );
 
-            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) activeCard.getLayoutParams();
-            lp.topMargin = nextTop;
-            activeCard.setLayoutParams(lp);
+            activeCard.setY(nextTop);
 
             int currentMinutes = startFromTop(nextTop);
             int currentMinutesBlock = currentMinutes / MINUTES_BLOCK_SIZE;
@@ -430,11 +454,15 @@ public class DayTimelineView extends FrameLayout {
                 lastUpdateMinutesBlock = currentMinutesBlock;
             }
 
-            int proposedIndex = computeTargetIndex(nextTop, info.durationMinutes);
-            if (proposedIndex != targetIndex) {
-                targetIndex = proposedIndex;
-                reflowPreview(info);
+            int proposedStart = clampStart(snapToGrid(currentMinutes), info.durationMinutes);
+            if (proposedStart == lastPreviewDraggedStart) {
+                return;
             }
+            lastPreviewDraggedStart = proposedStart;
+            moveDraggedToward(proposedStart, info);
+            previewSlotStarts.put(scheduledId, proposedStart);
+            info.currentStart = proposedStart;
+            normalizePreviewLayout(info);
 
             Integer targetStart = previewSlotStarts.get(scheduledId);
             if (targetStart != null) {
@@ -442,57 +470,142 @@ public class DayTimelineView extends FrameLayout {
             }
         }
 
-        private int computeTargetIndex(int draggedTop, int durationMinutes) {
-            List<Long> withoutDragged = new ArrayList<>(previewOrder);
-            withoutDragged.remove(scheduledId);
-            float draggedCenter = draggedTop + (durationMinutes * pxPerMinute / 2f);
-            int insertIndex = 0;
-            for (Long id : withoutDragged) {
-                BlockInfo other = blockMap.get(id);
-                Integer slotStart = previewSlotStarts.get(id);
-                if (other == null || slotStart == null) {
-                    continue;
+        private void moveDraggedToward(int proposedStart, @NonNull BlockInfo draggedInfo) {
+            int guard = Math.max(1, previewOrder.size());
+            boolean swapped;
+            do {
+                swapped = false;
+                guard--;
+                Integer currentStart = previewSlotStarts.get(scheduledId);
+                if (currentStart == null) {
+                    return;
                 }
-                float otherCenter = topFromStart(slotStart) + (other.durationMinutes * pxPerMinute / 2f);
-                if (draggedCenter > otherCenter) {
-                    insertIndex++;
-                }
-            }
-            return insertIndex;
-        }
 
-        private void reflowPreview(@NonNull BlockInfo draggedInfo) {
-            List<Long> reorderedIds = new ArrayList<>(previewOrder);
-            reorderedIds.remove(scheduledId);
-            int boundedIndex = Math.max(0, Math.min(targetIndex, reorderedIds.size()));
-            reorderedIds.add(boundedIndex, scheduledId);
-
-            List<Integer> slotStarts = new ArrayList<>();
-            for (Long id : previewOrder) {
-                Integer start = previewSlotStarts.get(id);
-                if (start != null) {
-                    slotStarts.add(start);
-                }
-            }
-            Collections.sort(slotStarts);
-
-            for (int i = 0; i < reorderedIds.size() && i < slotStarts.size(); i++) {
-                long id = reorderedIds.get(i);
-                int slotStart = slotStarts.get(i);
-                previewSlotStarts.put(id, slotStart);
-                if (id != scheduledId) {
-                    BlockInfo other = blockMap.get(id);
-                    if (other != null) {
-                        animateBlockTop(other.card, topFromStart(slotStart));
+                if (proposedStart < currentStart && targetIndex > 0) {
+                    long previousId = previewOrder.get(targetIndex - 1);
+                    int previousEnd = getBlockEnd(previousId);
+                    if (proposedStart < previousEnd) {
+                        swapWithNeighbor(targetIndex - 1, draggedInfo);
+                        swapped = true;
+                        continue;
                     }
                 }
+
+                if (proposedStart > currentStart && targetIndex < previewOrder.size() - 1) {
+                    long nextId = previewOrder.get(targetIndex + 1);
+                    int proposedEnd = proposedStart + draggedInfo.durationMinutes;
+                    if (proposedEnd > getBlockStart(nextId)) {
+                        swapWithNeighbor(targetIndex + 1, draggedInfo);
+                        swapped = true;
+                    }
+                }
+            } while (swapped && guard > 0);
+        }
+
+        private int getBlockStart(long blockId) {
+            Integer start = previewSlotStarts.get(blockId);
+            return start != null ? start : dayEndMin;
+        }
+
+        private int getBlockEnd(long blockId) {
+            BlockInfo info = blockMap.get(blockId);
+            Integer start = previewSlotStarts.get(blockId);
+            if (info == null || start == null) {
+                return dayStartMin;
+            }
+            return start + info.durationMinutes;
+        }
+
+        private void swapWithNeighbor(int neighborIndex, @NonNull BlockInfo draggedInfo) {
+            if (neighborIndex < 0 || neighborIndex >= previewOrder.size()) {
+                return;
             }
 
-            previewOrder.clear();
-            previewOrder.addAll(reorderedIds);
-            Integer overlayStart = previewSlotStarts.get(scheduledId);
-            if (overlayStart != null) {
-                updatePlacementOverlay(overlayStart, draggedInfo.durationMinutes);
+            long neighborId = previewOrder.get(neighborIndex);
+            BlockInfo neighbor = blockMap.get(neighborId);
+            Integer draggedSlotStart = previewSlotStarts.get(scheduledId);
+            Integer neighborSlotStart = previewSlotStarts.get(neighborId);
+            if (neighbor == null || draggedSlotStart == null || neighborSlotStart == null) {
+                return;
+            }
+
+            previewSlotStarts.put(scheduledId, neighborSlotStart);
+            previewSlotStarts.put(neighborId, draggedSlotStart);
+            Collections.swap(previewOrder, targetIndex, neighborIndex);
+            targetIndex = neighborIndex;
+
+            neighbor.currentStart = draggedSlotStart;
+            animateBlockTop(neighbor.card, topFromStart(draggedSlotStart));
+
+            draggedInfo.currentStart = neighborSlotStart;
+            updatePlacementOverlay(neighborSlotStart, draggedInfo.durationMinutes);
+        }
+
+        private void normalizePreviewLayout(@NonNull BlockInfo draggedInfo) {
+            Map<Long, Integer> normalized = new HashMap<>(previewSlotStarts);
+
+            int previousEnd = dayStartMin;
+            for (Long id : previewOrder) {
+                BlockInfo block = blockMap.get(id);
+                Integer preferredStart = normalized.get(id);
+                if (block == null || preferredStart == null) {
+                    continue;
+                }
+                int minStart = ceilToGrid(previousEnd);
+                int clampedPreferred = clampStart(preferredStart, block.durationMinutes);
+                int adjustedStart = Math.max(clampedPreferred, minStart);
+                normalized.put(id, adjustedStart);
+                previousEnd = adjustedStart + block.durationMinutes;
+            }
+
+            int nextStart = dayEndMin;
+            for (int i = previewOrder.size() - 1; i >= 0; i--) {
+                long id = previewOrder.get(i);
+                BlockInfo block = blockMap.get(id);
+                Integer currentStart = normalized.get(id);
+                if (block == null || currentStart == null) {
+                    continue;
+                }
+                int maxStart = floorToGrid(nextStart - block.durationMinutes);
+                int adjustedStart = Math.min(currentStart, maxStart);
+                adjustedStart = clampStart(adjustedStart, block.durationMinutes);
+                normalized.put(id, adjustedStart);
+                nextStart = adjustedStart;
+            }
+
+            previousEnd = dayStartMin;
+            for (Long id : previewOrder) {
+                BlockInfo block = blockMap.get(id);
+                Integer currentStart = normalized.get(id);
+                if (block == null || currentStart == null) {
+                    continue;
+                }
+                int minStart = ceilToGrid(previousEnd);
+                int adjustedStart = Math.max(currentStart, minStart);
+                adjustedStart = clampStart(adjustedStart, block.durationMinutes);
+                normalized.put(id, adjustedStart);
+                previousEnd = adjustedStart + block.durationMinutes;
+            }
+
+            previewSlotStarts.clear();
+            previewSlotStarts.putAll(normalized);
+
+            Integer draggedStart = previewSlotStarts.get(scheduledId);
+            if (draggedStart != null) {
+                draggedInfo.currentStart = draggedStart;
+            }
+
+            for (Long id : previewOrder) {
+                if (id == scheduledId) {
+                    continue;
+                }
+                BlockInfo block = blockMap.get(id);
+                Integer start = previewSlotStarts.get(id);
+                if (block == null || start == null) {
+                    continue;
+                }
+                block.currentStart = start;
+                animateBlockTop(block.card, topFromStart(start));
             }
         }
 
@@ -509,16 +622,16 @@ public class DayTimelineView extends FrameLayout {
             for (Long id : previewOrder) {
                 BlockInfo block = blockMap.get(id);
                 Integer targetStart = previewSlotStarts.get(id);
+                Integer previousStart = originalStarts.get(id);
                 if (block == null || targetStart == null) {
                     continue;
                 }
-                int previousStart = block.currentStart;
                 block.currentStart = targetStart;
                 FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) block.card.getLayoutParams();
                 lp.topMargin = topFromStart(targetStart);
                 block.card.setLayoutParams(lp);
                 block.card.setY(lp.topMargin);
-                if (previousStart != targetStart) {
+                if (previousStart != null && previousStart != targetStart) {
                     changedBlocks.add(new BlockReorderInfo(id, targetStart));
                 }
             }
@@ -532,6 +645,7 @@ public class DayTimelineView extends FrameLayout {
             }
 
             activeCard = null;
+            lastPreviewDraggedStart = Integer.MIN_VALUE;
         }
 
         private void cancelDrag(@NonNull BlockInfo draggedInfo) {
@@ -545,7 +659,7 @@ public class DayTimelineView extends FrameLayout {
 
             for (Long id : previewOrder) {
                 BlockInfo block = blockMap.get(id);
-                Integer start = previewSlotStarts.get(id);
+                Integer start = originalStarts.get(id);
                 if (block == null || start == null) {
                     continue;
                 }
@@ -559,6 +673,7 @@ public class DayTimelineView extends FrameLayout {
 
             draggedInfo.currentStart = dragStartMinutes;
             activeCard = null;
+            lastPreviewDraggedStart = Integer.MIN_VALUE;
         }
     }
 }
