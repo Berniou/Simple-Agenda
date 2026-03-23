@@ -5,6 +5,7 @@ import android.content.ClipDescription;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.DragEvent;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -29,7 +31,12 @@ import com.simpleagenda.app.data.Task;
 import com.simpleagenda.app.ui.common.TaskPalette;
 import com.simpleagenda.app.util.TimeUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Grille horaire (6h–22h) avec blocs déplaçables verticalement (tout le bloc est draggable).
@@ -66,9 +73,19 @@ public class DayTimelineView extends FrameLayout {
 
     private final int dayStartMin = AgendaRepository.DAY_START_MINUTES;
     private final int dayEndMin = AgendaRepository.DAY_END_MINUTES;
+
+    private int lastUpdateMinutesBlock = -1; // Dernier bloc de 15 minutes mis à jour
+    private final int MINUTES_BLOCK_SIZE = 15; // Taille des blocs en minutes
+    private static final long REORDER_ANIM_DURATION_MS = 160L;
+    private static final long LONG_PRESS_TIMEOUT_MS = 220L;
+    
+    // Overlay pour aperçu du placement
+    private MaterialCardView placementOverlay;
     
     // Pour tracker les blocs et leurs positions
-    private final java.util.Map<Long, BlockInfo> blockMap = new java.util.HashMap<>();
+    private final Map<Long, BlockInfo> blockMap = new HashMap<>();
+    private final Handler longPressHandler = new Handler();
+    private final int touchSlop;
 
     private final int touchSlop;
 
@@ -197,19 +214,22 @@ public class DayTimelineView extends FrameLayout {
 
             addView(card, lp);
         }
+
+        addView(placementOverlay);
+        placementOverlay.setVisibility(View.GONE);
     }
     
     private static class BlockInfo {
         MaterialCardView card;
         long scheduledId;
         int durationMinutes;
-        int originalStart;
+        int currentStart;
         
         BlockInfo(MaterialCardView card, long scheduledId, int durationMinutes, int originalStart) {
             this.card = card;
             this.scheduledId = scheduledId;
             this.durationMinutes = durationMinutes;
-            this.originalStart = originalStart;
+            this.currentStart = originalStart;
         }
     }
 
@@ -242,17 +262,72 @@ public class DayTimelineView extends FrameLayout {
         canvas.drawLine(labelGutterPx, 0, labelGutterPx, totalHeight, gridPaint);
     }
 
-    private final class BlockDragHelper implements OnTouchListener {
-        private final long scheduledId;
-        private final int durationMin;
+    /**
+     * Met à jour l'affichage de l'overlay d'aperçu
+     */
+    private void updatePlacementOverlay(int targetStartMinutes, int taskDurationMinutes) {
+        int overlayTop = Math.round((targetStartMinutes - dayStartMin) * pxPerMinute);
+        int overlayHeight = Math.round(taskDurationMinutes * pxPerMinute);
 
+        FrameLayout.LayoutParams overlayLp = new FrameLayout.LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                overlayHeight
+        );
+        overlayLp.leftMargin = labelGutterPx + (int) (4 * getResources().getDisplayMetrics().density);
+        overlayLp.rightMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        overlayLp.topMargin = overlayTop;
+
+        placementOverlay.setLayoutParams(overlayLp);
+        placementOverlay.setVisibility(View.VISIBLE);
+        placementOverlay.bringToFront();
+    }
+
+    private int clampTop(int top, int height) {
+        int totalMinSpan = dayEndMin - dayStartMin;
+        int maxTop = Math.round(totalMinSpan * pxPerMinute) - height;
+        return Math.max(0, Math.min(top, maxTop));
+    }
+
+    private int startFromTop(int top) {
+        return dayStartMin + Math.round(top / pxPerMinute);
+    }
+
+    private int topFromStart(int startMinutes) {
+        return Math.round((startMinutes - dayStartMin) * pxPerMinute);
+    }
+
+    private List<BlockInfo> getSortedBlocks() {
+        List<BlockInfo> blocks = new ArrayList<>(blockMap.values());
+        Collections.sort(blocks, Comparator.comparingInt(info -> info.currentStart));
+        return blocks;
+    }
+
+    private void animateBlockTop(@NonNull MaterialCardView card, int topMargin) {
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) card.getLayoutParams();
+        if (lp.topMargin == topMargin) {
+            return;
+        }
+        card.animate().cancel();
+        card.animate()
+                .y(topMargin)
+                .setDuration(REORDER_ANIM_DURATION_MS)
+                .withEndAction(() -> {
+                    FrameLayout.LayoutParams updatedLp = (FrameLayout.LayoutParams) card.getLayoutParams();
+                    updatedLp.topMargin = topMargin;
+                    card.setLayoutParams(updatedLp);
+                    card.setY(topMargin);
+                })
+                .start();
+    }
+
+    private final class BlockDragHelper implements View.OnTouchListener {
+        private final long scheduledId;
         private float downRawY;
         private int startTopMargin;
         private boolean dragging;
 
-        BlockDragHelper(long scheduledId, int durationMin) {
+        BlockDragHelper(long scheduledId) {
             this.scheduledId = scheduledId;
-            this.durationMin = durationMin;
         }
 
         @Override
@@ -264,6 +339,7 @@ public class DayTimelineView extends FrameLayout {
 
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
+                    activeCard = card;
                     downRawY = event.getRawY();
                     startTopMargin = lp.topMargin;
                     dragging = false;
@@ -293,6 +369,14 @@ public class DayTimelineView extends FrameLayout {
                 }
 
                 case MotionEvent.ACTION_UP:
+                    if (isDragging) {
+                        finishDrag(info);
+                        return true;
+                    }
+                    if (longPressRunnable != null) {
+                        longPressHandler.removeCallbacks(longPressRunnable);
+                        longPressRunnable = null;
+                    }
                 case MotionEvent.ACTION_CANCEL:
                     requestAncestorsDisallowInterceptFrom(v, false);
                     v.setElevation(4f);
@@ -310,98 +394,171 @@ public class DayTimelineView extends FrameLayout {
                     return false;
             }
         }
-        
-        /**
-         * Met à jour temporairement les positions des autres blocs pendant le déplacement
-         */
-        private void updateOtherBlocksPosition(long draggedId, int draggedStart, int draggedDuration,
-                                               MaterialCardView draggedCard) {
-            int draggedEnd = draggedStart + draggedDuration;
-            
-            for (int i = 0; i < getChildCount(); i++) {
-                View child = getChildAt(i);
-                if (!(child instanceof MaterialCardView) || child == draggedCard) {
-                    continue;
-                }
-                
-                MaterialCardView otherCard = (MaterialCardView) child;
-                FrameLayout.LayoutParams otherLp = (FrameLayout.LayoutParams) otherCard.getLayoutParams();
-                
-                // Trouver les infos de ce bloc
-                BlockInfo otherInfo = null;
-                for (BlockInfo info : blockMap.values()) {
-                    if (info.card == otherCard) {
-                        otherInfo = info;
-                        break;
-                    }
-                }
-                
-                if (otherInfo == null) continue;
-                
-                int otherStart = dayStartMin + Math.round(otherLp.topMargin / pxPerMinute);
-                int otherEnd = otherStart + otherInfo.durationMinutes;
-                
-                // Si les blocs se chevauchent, déplacer l'autre bloc
-                if (draggedStart < otherEnd && otherStart < draggedEnd) {
-                    // Chevauchement détecté
-                    int newStart;
-                    
-                    // Décider si on déplace l'autre bloc vers le haut ou le bas
-                    if (otherStart < draggedStart) {
-                        // L'autre bloc est au-dessus, le déplacer plus haut si possible
-                        newStart = draggedStart - otherInfo.durationMinutes;
-                        if (newStart < dayStartMin) {
-                            newStart = draggedEnd;
-                        }
-                    } else {
-                        // L'autre bloc est en dessous, le déplacer plus bas
-                        newStart = draggedEnd;
-                    }
-                    
-                    // Limiter aux bornes
-                    if (newStart + otherInfo.durationMinutes > dayEndMin) {
-                        newStart = dayEndMin - otherInfo.durationMinutes;
-                    }
-                    if (newStart < dayStartMin) {
-                        newStart = dayStartMin;
-                    }
-                    
-                    int newTop = Math.round((newStart - dayStartMin) * pxPerMinute);
-                    otherLp.topMargin = newTop;
-                    otherCard.setLayoutParams(otherLp);
-                }
+
+        private void beginDrag(@NonNull BlockInfo info) {
+            previewOrder.clear();
+            previewSlotStarts.clear();
+            List<BlockInfo> sorted = getSortedBlocks();
+            for (BlockInfo block : sorted) {
+                previewOrder.add(block.scheduledId);
+                previewSlotStarts.put(block.scheduledId, block.currentStart);
+            }
+            targetIndex = previewOrder.indexOf(scheduledId);
+            lastUpdateMinutesBlock = dragStartMinutes / MINUTES_BLOCK_SIZE;
+            activeCard.bringToFront();
+            activeCard.setPressed(true);
+            activeCard.animate().cancel();
+            activeCard.animate().scaleX(1.02f).scaleY(1.02f).setDuration(90L).start();
+            activeCard.setElevation(18f);
+            updatePlacementOverlay(previewSlotStarts.get(scheduledId), info.durationMinutes);
+            requestDisallowInterceptTouchEvent(true);
+        }
+
+        private void updateDragPosition(float rawY, @NonNull BlockInfo info) {
+            int nextTop = clampTop(
+                    Math.round(rawY - parentLocationOnScreen[1] - initialTouchOffset),
+                    activeCard.getHeight()
+            );
+
+            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) activeCard.getLayoutParams();
+            lp.topMargin = nextTop;
+            activeCard.setLayoutParams(lp);
+
+            int currentMinutes = startFromTop(nextTop);
+            int currentMinutesBlock = currentMinutes / MINUTES_BLOCK_SIZE;
+            if (currentMinutesBlock != lastUpdateMinutesBlock) {
+                lastUpdateMinutesBlock = currentMinutesBlock;
+            }
+
+            int proposedIndex = computeTargetIndex(nextTop, info.durationMinutes);
+            if (proposedIndex != targetIndex) {
+                targetIndex = proposedIndex;
+                reflowPreview(info);
+            }
+
+            Integer targetStart = previewSlotStarts.get(scheduledId);
+            if (targetStart != null) {
+                updatePlacementOverlay(targetStart, info.durationMinutes);
             }
         }
-        
-        /**
-         * Réorganise tous les blocs après un déplacement
-         */
-        private void reorganizeBlocks() {
-            // Collecter tous les blocs et leurs positions actuelles
-            java.util.List<BlockReorderInfo> reordered = new java.util.ArrayList<>();
-            
-            for (int i = 0; i < getChildCount(); i++) {
-                View child = getChildAt(i);
-                if (!(child instanceof MaterialCardView)) {
+
+        private int computeTargetIndex(int draggedTop, int durationMinutes) {
+            List<Long> withoutDragged = new ArrayList<>(previewOrder);
+            withoutDragged.remove(scheduledId);
+            float draggedCenter = draggedTop + (durationMinutes * pxPerMinute / 2f);
+            int insertIndex = 0;
+            for (Long id : withoutDragged) {
+                BlockInfo other = blockMap.get(id);
+                Integer slotStart = previewSlotStarts.get(id);
+                if (other == null || slotStart == null) {
                     continue;
                 }
-                
-                MaterialCardView card = (MaterialCardView) child;
-                FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) card.getLayoutParams();
-                int currentStart = dayStartMin + Math.round(lp.topMargin / pxPerMinute);
-                
-                // Trouver l'ID du bloc
-                for (long id : blockMap.keySet()) {
-                    if (blockMap.get(id).card == card) {
-                        reordered.add(new BlockReorderInfo(id, currentStart));
-                        break;
+                float otherCenter = topFromStart(slotStart) + (other.durationMinutes * pxPerMinute / 2f);
+                if (draggedCenter > otherCenter) {
+                    insertIndex++;
+                }
+            }
+            return insertIndex;
+        }
+
+        private void reflowPreview(@NonNull BlockInfo draggedInfo) {
+            List<Long> reorderedIds = new ArrayList<>(previewOrder);
+            reorderedIds.remove(scheduledId);
+            int boundedIndex = Math.max(0, Math.min(targetIndex, reorderedIds.size()));
+            reorderedIds.add(boundedIndex, scheduledId);
+
+            List<Integer> slotStarts = new ArrayList<>();
+            for (Long id : previewOrder) {
+                Integer start = previewSlotStarts.get(id);
+                if (start != null) {
+                    slotStarts.add(start);
+                }
+            }
+            Collections.sort(slotStarts);
+
+            for (int i = 0; i < reorderedIds.size() && i < slotStarts.size(); i++) {
+                long id = reorderedIds.get(i);
+                int slotStart = slotStarts.get(i);
+                previewSlotStarts.put(id, slotStart);
+                if (id != scheduledId) {
+                    BlockInfo other = blockMap.get(id);
+                    if (other != null) {
+                        animateBlockTop(other.card, topFromStart(slotStart));
                     }
                 }
             }
-            
-            if (moveListener != null && !reordered.isEmpty()) {
-                moveListener.onBlocksReordered(reordered);
+
+            previewOrder.clear();
+            previewOrder.addAll(reorderedIds);
+            Integer overlayStart = previewSlotStarts.get(scheduledId);
+            if (overlayStart != null) {
+                updatePlacementOverlay(overlayStart, draggedInfo.durationMinutes);
             }
+        }
+
+        private void finishDrag(@NonNull BlockInfo draggedInfo) {
+            isDragging = false;
+            requestDisallowInterceptTouchEvent(false);
+            placementOverlay.setVisibility(View.GONE);
+            activeCard.setPressed(false);
+            activeCard.animate().cancel();
+            activeCard.animate().scaleX(1f).scaleY(1f).setDuration(90L).start();
+            activeCard.setElevation(4f);
+
+            List<BlockReorderInfo> changedBlocks = new ArrayList<>();
+            for (Long id : previewOrder) {
+                BlockInfo block = blockMap.get(id);
+                Integer targetStart = previewSlotStarts.get(id);
+                if (block == null || targetStart == null) {
+                    continue;
+                }
+                int previousStart = block.currentStart;
+                block.currentStart = targetStart;
+                FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) block.card.getLayoutParams();
+                lp.topMargin = topFromStart(targetStart);
+                block.card.setLayoutParams(lp);
+                block.card.setY(lp.topMargin);
+                if (previousStart != targetStart) {
+                    changedBlocks.add(new BlockReorderInfo(id, targetStart));
+                }
+            }
+
+            if (moveListener != null) {
+                if (!changedBlocks.isEmpty()) {
+                    moveListener.onBlocksReordered(changedBlocks);
+                } else {
+                    moveListener.onBlockMoved(scheduledId, draggedInfo.currentStart);
+                }
+            }
+
+            activeCard = null;
+        }
+
+        private void cancelDrag(@NonNull BlockInfo draggedInfo) {
+            isDragging = false;
+            requestDisallowInterceptTouchEvent(false);
+            placementOverlay.setVisibility(View.GONE);
+            activeCard.setPressed(false);
+            activeCard.animate().cancel();
+            activeCard.animate().scaleX(1f).scaleY(1f).setDuration(90L).start();
+            activeCard.setElevation(4f);
+
+            for (Long id : previewOrder) {
+                BlockInfo block = blockMap.get(id);
+                Integer start = previewSlotStarts.get(id);
+                if (block == null || start == null) {
+                    continue;
+                }
+                int top = topFromStart(start);
+                FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) block.card.getLayoutParams();
+                lp.topMargin = top;
+                block.card.setLayoutParams(lp);
+                block.card.setY(top);
+                block.currentStart = start;
+            }
+
+            draggedInfo.currentStart = dragStartMinutes;
+            activeCard = null;
         }
     }
 }

@@ -28,11 +28,24 @@ Contient les infos de réorganisation pour chaque bloc affecté.
 - Les infos des blocs sont stockées dans `blockMap`
 
 #### Mise à jour de `BlockDragHelper`:
-- Accepte maintenant `durationMin` comme paramètre
-- Lors du **ACTION_MOVE**: appelle `updateOtherBlocksPosition()` pour repositionner les blocs qui chevauchent
-- Lors du **ACTION_UP**: appelle `reorganizeBlocks()` pour mettre à jour la base de données
+- **Implémente maintenant `OnTouchListener` et `OnDragListener`**
+- **Logique de long press (1 seconde)**: Timer qui démarre au ACTION_DOWN
+- **Si mouvement avant 1 seconde**: Annule le timer et permet le scrolling normal
+- **Après 1 seconde**: Démarre le drag avec `startDragAndDrop()`
+- Gestion des événements de drag dans `onDrag()`
 
 #### Nouvelles méthodes:
+
+##### `onTouch()`:
+- Gère ACTION_DOWN: démarre le timer de 1 seconde
+- Gère ACTION_MOVE: si mouvement détecté avant timer, annule et permet scroll
+- Gère ACTION_UP/CANCEL: nettoie le timer
+
+##### `onDrag()`:
+- `ACTION_DRAG_STARTED`: Drag commencé
+- `ACTION_DRAG_LOCATION`: Met à jour position et réorganise autres blocs
+- `ACTION_DRAG_ENDED`: Sauvegarde les changements
+- `ACTION_DROP`: Gestion du drop
 
 ##### `updateOtherBlocksPosition()`:
 - Vérifie les chevauchements en temps réel pendant le drag
@@ -47,6 +60,57 @@ Contient les infos de réorganisation pour chaque bloc affecté.
 
 #### Mise à jour du listener:
 Le listener implémente maintenant les deux méthodes:
+
+```java
+binding.dayTimeline.setMoveListener(new DayTimelineView.BlockMoveListener() {
+    @Override
+    public void onBlockMoved(long scheduledId, int newStart) {
+        // Déplace un bloc dans la base de données
+        repository.moveScheduled(...);
+    }
+
+    @Override
+    public void onBlocksReordered(List<BlockReorderInfo> reordered) {
+        // Met à jour TOUS les blocs réorganisés
+        for (BlockReorderInfo info : reordered) {
+            repository.moveScheduled(...);
+        }
+    }
+});
+```
+
+## Comportement
+
+### Lors de la sélection:
+1. **Touch down**: Démarre un timer de 1 seconde
+2. **Si mouvement avant 1s**: Annule timer → **scrolling normal possible**
+3. **Après 1 seconde**: Drag démarre automatiquement
+
+### Lors du drag:
+1. La carte se lève (élévation = 12f)
+2. Les autres cartes qui chevauchent se déplacent automatiquement:
+   - Si l'autre carte est au-dessus → elle se déplace plus haut
+   - Si l'autre carte est en dessous → elle se déplace plus bas
+3. Les positions sont mises à jour visuellement en temps réel
+
+### À la fin du drag:
+1. La carte retrouve son élévation normale (4f)
+2. Tous les blocs sont réorganisés dans la base de données
+3. En cas de chevauchement détecté par la repo → message d'erreur et rollback
+
+## Avantages
+✅ Drag & drop intuitif avec long press
+✅ Scrolling normal si pas de long press
+✅ Réorganisation automatique des autres tâches
+✅ Feedback visuel en temps réel
+✅ Respecte les contraintes de temps (6h–22h)
+✅ Pas de chevauchements possibles
+
+## Notes techniques
+- Le snapping à la grille est toujours appliqué (via `AgendaRepository.snapToGrid()`)
+- La durée des tâches ne change pas, seuls les heures de début
+- Les collisions sont détectées en pixels (pxPerMinute) puis converties en minutes
+- Utilise le système natif de drag & drop d'Android
 
 ```java
 binding.dayTimeline.setMoveListener(new DayTimelineView.BlockMoveListener() {
