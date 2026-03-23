@@ -29,7 +29,8 @@ public class AgendaRepository {
 
     private final TaskDao taskDao;
     private final ScheduledTaskDao scheduledDao;
-    private final TaskReminderScheduler reminderScheduler;
+    //TODO
+    // private final TaskReminderScheduler reminderScheduler;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private final Handler main = new Handler(Looper.getMainLooper());
 
@@ -37,7 +38,8 @@ public class AgendaRepository {
         Context ctx = appContext.getApplicationContext();
         this.taskDao = db.taskDao();
         this.scheduledDao = db.scheduledTaskDao();
-        this.reminderScheduler = new TaskReminderScheduler(ctx);
+        //  TODO: injecter un vrai scheduler qui utilise AlarmManager ou WorkManager, et pas un fake qui ne fait rien
+        // this.reminderScheduler = new TaskReminderScheduler(ctx);
     }
 
     /** Bibliothèque : toutes les tâches créées. */
@@ -100,7 +102,8 @@ public class AgendaRepository {
                 Collections.sort(busy, Comparator.comparingInt(a -> a.start));
                 anyPlaced = true;
             }
-            reminderScheduler.scheduleAllForDay(dayMillis);
+            //TODO
+            //reminderScheduler.scheduleAllForDay(dayMillis);
             final boolean placed = anyPlaced;
             final boolean hadIds = !taskIdsInOrder.isEmpty();
             main.post(() -> {
@@ -179,7 +182,8 @@ public class AgendaRepository {
             }
             st.setStartMinutesFromMidnight(snapped);
             scheduledDao.update(st);
-            reminderScheduler.reschedule(st.getId());
+            //TODO
+            // reminderScheduler.reschedule(st.getId());
             main.post(onSuccess);
         });
     }
