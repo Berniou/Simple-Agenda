@@ -1,11 +1,14 @@
 package com.simpleagenda.app.ui.tasks;
 
+import android.content.ClipData;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.simpleagenda.app.R;
@@ -16,7 +19,16 @@ import java.util.List;
 
 public class UnscheduledRowAdapter extends RecyclerView.Adapter<UnscheduledRowAdapter.Holder> {
 
+    public interface DragPermission {
+        boolean mayDrag(long taskId);
+    }
+
     private final List<Task> items = new ArrayList<>();
+    private @Nullable DragPermission dragPermission;
+
+    public void setDragPermission(@Nullable DragPermission dragPermission) {
+        this.dragPermission = dragPermission;
+    }
 
     public void submit(List<Task> tasks) {
         items.clear();
@@ -37,6 +49,15 @@ public class UnscheduledRowAdapter extends RecyclerView.Adapter<UnscheduledRowAd
     public void onBindViewHolder(@NonNull Holder holder, int position) {
         Task t = items.get(position);
         holder.title.setText(t.getTitle());
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (dragPermission == null || !dragPermission.mayDrag(t.getId())) {
+                Toast.makeText(v.getContext(), R.string.select_task_first, Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            ClipData clip = ClipData.newPlainText("task_id", String.valueOf(t.getId()));
+            return v.startDragAndDrop(clip, new View.DragShadowBuilder(holder.itemView), null, 0);
+        });
     }
 
     @Override

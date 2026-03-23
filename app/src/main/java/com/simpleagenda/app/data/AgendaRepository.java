@@ -113,6 +113,49 @@ public class AgendaRepository {
         });
     }
 
+    /**
+     * Place une tâche à l’heure choisie sur la journée (trous entre les blocs autorisés).
+     */
+    public void scheduleTaskAt(long taskId, long dayMillis, int rawStartMinutes,
+                               @NonNull Runnable onSuccess,
+                               @NonNull java.util.function.Consumer<String> onError) {
+        io.execute(() -> {
+            if (scheduledDao.countForTaskAndDay(taskId, dayMillis) > 0) {
+                main.post(() -> onError.accept("already"));
+                return;
+            }
+            Task task = taskDao.getById(taskId);
+            if (task == null) {
+                main.post(() -> onError.accept("missing"));
+                return;
+            }
+            int duration = task.durationMinutes();
+            int snapped = (rawStartMinutes / SNAP_STEP_MINUTES) * SNAP_STEP_MINUTES;
+            snapped = Math.max(DAY_START_MINUTES, snapped);
+            int maxStart = DAY_END_MINUTES - duration;
+            if (maxStart < DAY_START_MINUTES) {
+                main.post(() -> onError.accept("bounds"));
+                return;
+            }
+            maxStart = (maxStart / SNAP_STEP_MINUTES) * SNAP_STEP_MINUTES;
+            if (snapped > maxStart) {
+                snapped = maxStart;
+            }
+            List<ScheduledTaskWithTask> day = scheduledDao.getForDaySync(dayMillis);
+            if (!canPlace(-1L, snapped, duration, day)) {
+                main.post(() -> onError.accept("overlap"));
+                return;
+            }
+            ScheduledTask row = new ScheduledTask();
+            row.setTaskId(taskId);
+            row.setDayMillis(dayMillis);
+            row.setStartMinutesFromMidnight(snapped);
+            scheduledDao.insert(row);
+            reminderScheduler.scheduleAllForDay(dayMillis);
+            main.post(onSuccess);
+        });
+    }
+
     public void moveScheduled(long scheduledId, int rawStartMinutes,
                               @NonNull Runnable onSuccess,
                               @NonNull java.util.function.Consumer<String> onError) {
@@ -151,7 +194,7 @@ public class AgendaRepository {
             return false;
         }
         for (ScheduledTaskWithTask st : sameDay) {
-            if (st.getScheduled().getId() == excludeScheduledId) {
+            if (excludeScheduledId >= 0 && st.getScheduled().getId() == excludeScheduledId) {
                 continue;
             }
             Task t = st.getTask();

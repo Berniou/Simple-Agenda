@@ -77,6 +77,38 @@ public class PlanningFragment extends Fragment {
 
         selectAdapter.setListener(this::updateSummaryFromSelection);
 
+        unscheduledAdapter.setDragPermission(taskId -> selectAdapter.getSelectedIds().contains(taskId));
+
+        binding.dayTimeline.setMoveListener((scheduledId, newStart) ->
+                repository.moveScheduled(
+                        scheduledId,
+                        newStart,
+                        () -> { },
+                        err -> {
+                            if ("overlap".equals(err)) {
+                                Toast.makeText(requireContext(), R.string.error_overlap, Toast.LENGTH_SHORT).show();
+                            }
+                            binding.dayTimeline.setBlocks(lastScheduled);
+                        }
+                ));
+
+        binding.dayTimeline.setExternalDropListener((taskId, rawStart) ->
+                repository.scheduleTaskAt(
+                        taskId,
+                        dayMillis,
+                        rawStart,
+                        () -> { },
+                        err -> {
+                            if ("overlap".equals(err)) {
+                                Toast.makeText(requireContext(), R.string.error_overlap, Toast.LENGTH_SHORT).show();
+                            } else if ("bounds".equals(err)) {
+                                Toast.makeText(requireContext(), R.string.error_bounds, Toast.LENGTH_SHORT).show();
+                            } else if ("already".equals(err)) {
+                                Toast.makeText(requireContext(), R.string.error_already_planned_day, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                ));
+
         planningViewModel.tasksAvailableForDay.observe(getViewLifecycleOwner(), tasks -> {
             availableForDayCache.clear();
             if (tasks != null) {
@@ -92,21 +124,6 @@ public class PlanningFragment extends Fragment {
             binding.dayTimeline.setBlocks(lastScheduled);
             updateFocusAndStats(scheduled);
         });
-
-        binding.dayTimeline.setMoveListener((scheduledId, newStart) ->
-                repository.moveScheduled(
-                        scheduledId,
-                        newStart,
-                        () -> { },
-                        err -> {
-                            if ("overlap".equals(err)) {
-                                Toast.makeText(requireContext(), R.string.error_overlap, Toast.LENGTH_SHORT).show();
-                            }
-                            binding.dayTimeline.setBlocks(lastScheduled);
-                        }
-                ));
-
-        binding.buttonPlan.setOnClickListener(v -> planSelected());
 
         binding.buttonPrevDay.setOnClickListener(v -> shiftDay(-1));
         binding.buttonNextDay.setOnClickListener(v -> shiftDay(1));
@@ -178,21 +195,6 @@ public class PlanningFragment extends Fragment {
                 : getString(R.string.duration_hours_minutes, h, m);
         binding.statScheduledTime.setText(timeLabel);
         binding.statTaskCount.setText(getString(R.string.scheduled_tasks_count, scheduled.size()));
-    }
-
-    private void planSelected() {
-        Set<Long> ids = selectAdapter.getSelectedIds();
-        if (ids.isEmpty()) {
-            Toast.makeText(requireContext(), R.string.selection_subtitle, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        List<Long> ordered = new ArrayList<>(ids);
-        repository.scheduleTasksForDay(
-                dayMillis,
-                ordered,
-                () -> Toast.makeText(requireContext(), R.string.plan_success, Toast.LENGTH_SHORT).show(),
-                () -> Toast.makeText(requireContext(), R.string.error_no_slot, Toast.LENGTH_SHORT).show()
-        );
     }
 
     @Override

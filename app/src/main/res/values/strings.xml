@@ -29,7 +29,9 @@
 
     <!-- Sélection -->
     <string name="selection_title">Sélection et ajout</string>
-    <string name="selection_subtitle">Touchez pour sélectionner les tâches à planifier</string>
+    <string name="selection_subtitle">Touchez une carte pour la sélectionner, puis maintenez-la et glissez-la sur la grille ci-dessous pour choisir l’heure (trous possibles entre les blocs).</string>
+    <string name="planning_drag_hint">Astuce : après sélection, appui long sur la carte puis déposez sur la ligne horaire.</string>
+    <string name="select_task_first">Sélectionnez d’abord la tâche en la touchant.</string>
     <string name="day_summary">Résumé du jour</string>
     <string name="tasks_selected_ratio">%1$d / %2$d</string>
     <string name="tasks_selected_label">tâches sélectionnées</string>
@@ -46,6 +48,7 @@
     <string name="unscheduled_time">Temps non planifié</string>
     <string name="today_format">EEEE d MMMM</string>
     <string name="time_range_format">%1$s — %2$s</string>
+    <string name="drag_schedule_hint">Glisser pour déplacer sur la journée</string>
 
     <!-- Notifications -->
     <string name="channel_tasks_name">Rappels d’activités</string>
@@ -59,4 +62,5 @@
     <string name="error_overlap">Impossible de placer la tâche : cette plage chevauche une autre.</string>
     <string name="error_bounds">Hors plage horaire autorisée pour la journée.</string>
     <string name="error_no_slot">Aucun créneau disponible pour placer ces tâches.</string>
+    <string name="error_already_planned_day">Cette tâche est déjà planifiée pour ce jour.</string>
 </resources>

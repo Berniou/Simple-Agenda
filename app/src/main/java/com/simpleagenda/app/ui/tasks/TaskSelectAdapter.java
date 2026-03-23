@@ -1,11 +1,13 @@
 package com.simpleagenda.app.ui.tasks;
 
+import android.content.ClipData;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,6 +19,7 @@ import com.simpleagenda.app.ui.common.TaskPalette;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -101,6 +104,17 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
             if (listener != null) {
                 listener.onSelectionChanged();
             }
+        });
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (!selected.contains(t.getId())) {
+                Toast.makeText(v.getContext(), R.string.select_task_first, Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            ClipData clip = ClipData.newPlainText("task_id", String.valueOf(t.getId()));
+            View.DragShadowBuilder shadow = new View.DragShadowBuilder(holder.card);
+            v.startDragAndDrop(clip, shadow, null, 0);
+            return true;
         });
     }
 
