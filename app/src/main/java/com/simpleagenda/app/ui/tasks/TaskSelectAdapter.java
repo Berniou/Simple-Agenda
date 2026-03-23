@@ -1,12 +1,13 @@
 package com.simpleagenda.app.ui.tasks;
 
-import android.content.ClipData;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -20,7 +21,6 @@ import com.simpleagenda.app.ui.common.TaskPalette;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -34,6 +34,7 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
     private final Set<Long> selected = new HashSet<>();
     private Listener listener;
     private RecyclerView recyclerView;
+    private ItemTouchHelper itemTouchHelper;
 
     public void setListener(Listener listener) {
         this.listener = listener;
@@ -70,11 +71,6 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
         return sum;
     }
 
-    public void moveItem(int from, int to) {
-        Collections.swap(items, from, to);
-        notifyItemMoved(from, to);
-    }
-
     @NonNull
     @Override
     public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -87,7 +83,7 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
         super.onAttachedToRecyclerView(recyclerView);
         this.recyclerView = recyclerView;
         
-        ItemTouchHelper.Callback callback = new DragCallback();
+        ItemTouchHelper.Callback callback = new DragCallback(this);
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
     }
@@ -125,7 +121,39 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
 
         holder.taskId = t.getId();
         holder.card.setLongClickable(true);
+        holder.card.setOnLongClickListener(v -> {
+            if (!selected.contains(t.getId())) {
+                Toast.makeText(v.getContext(), R.string.select_task_first, Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+            // ← CLÉ : bloquer les parents scrollables
+        ViewParent parent = v.getParent();
+            if (parent instanceof ViewGroup) {
+                ((ViewGroup) parent).requestDisallowInterceptTouchEvent(true);
+            }
+            
+            // Démarre le drag via ItemTouchHelper
+            itemTouchHelper.startDrag(holder);
+            return true;
+        });
     }
+
+    // Méthode pour réordonner (à appeler depuis onMove)
+    public void moveItem(int fromPosition, int toPosition) {
+        if (fromPosition < toPosition) {
+            for (int i = fromPosition; i < toPosition; i++) {
+                Collections.swap(items, i, i + 1);
+            }
+        } else {
+            for (int i = fromPosition; i > toPosition; i--) {
+                Collections.swap(items, i, i - 1);
+            }
+        }
+        notifyItemMoved(fromPosition, toPosition);
+    }
+
+
 
     @Override
     public int getItemCount() {
@@ -149,28 +177,48 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
     }
 
     private class DragCallback extends ItemTouchHelper.Callback {
+
+        private final TaskSelectAdapter adapter;
+
+        DragCallback(TaskSelectAdapter adapter) {
+            this.adapter = adapter;
+        }
+
         @Override
         public boolean isLongPressDragEnabled() {
-            return true;
+            return false;
         }
 
         @Override
         public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-            int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
-            return makeMovementFlags(dragFlags, 0);
+            // Enable drag in all directions for external drop
+            int dragFlags = ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT | ItemTouchHelper.UP | ItemTouchHelper.DOWN;
+            return makeMovementFlags(0, dragFlags);
         }
 
         @Override
         public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-            int from = viewHolder.getAdapterPosition();
-            int to = target.getAdapterPosition();
-            moveItem(from, to);
+           int from = viewHolder.getBindingAdapterPosition();
+            int to = target.getBindingAdapterPosition();
+            adapter.moveItem(from, to); // ← Réordonne dans la colonne
             return true;
         }
 
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
             // No swipe functionality
+        }
+
+        @Override
+        public void onSelectedChanged(@NonNull RecyclerView.ViewHolder viewHolder, int actionState) {
+            super.onSelectedChanged(viewHolder, actionState);
+            // Remet le scroll normal à la fin du drag
+            if (actionState == ItemTouchHelper.ACTION_STATE_IDLE) {
+                ViewParent parent = recyclerView.getParent();
+                if (parent instanceof ViewGroup) {
+                    ((ViewGroup) parent).requestDisallowInterceptTouchEvent(false);
+                }
+            }
         }
     }
 }
