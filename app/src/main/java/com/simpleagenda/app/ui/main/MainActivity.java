@@ -14,7 +14,6 @@ import androidx.fragment.app.Fragment;
 
 import com.simpleagenda.app.R;
 import com.simpleagenda.app.databinding.ActivityMainBinding;
-import com.simpleagenda.app.notifications.NotificationHelper;
 import com.simpleagenda.app.ui.planning.PlanningFragment;
 import com.simpleagenda.app.ui.tasks.PendingTasksFragment;
 
@@ -33,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        //NotificationHelper.ensureChannels(this);
         requestNotificationPermissionIfNeeded();
 
         if (savedInstanceState == null) {

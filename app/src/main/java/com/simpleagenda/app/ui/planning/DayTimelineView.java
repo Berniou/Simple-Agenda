@@ -74,18 +74,8 @@ public class DayTimelineView extends FrameLayout {
     private final int dayStartMin = AgendaRepository.DAY_START_MINUTES;
     private final int dayEndMin = AgendaRepository.DAY_END_MINUTES;
 
-    private int lastUpdateMinutesBlock = -1; // Dernier bloc de 15 minutes mis à jour
-    private final int MINUTES_BLOCK_SIZE = 15; // Taille des blocs en minutes
-    private static final long REORDER_ANIM_DURATION_MS = 160L;
-    private static final long LONG_PRESS_TIMEOUT_MS = 220L;
-    
-    // Overlay pour aperçu du placement
-    private MaterialCardView placementOverlay;
-    
     // Pour tracker les blocs et leurs positions
     private final Map<Long, BlockInfo> blockMap = new HashMap<>();
-    private final Handler longPressHandler = new Handler();
-    private final int touchSlop;
 
     private final int touchSlop;
 
@@ -214,9 +204,6 @@ public class DayTimelineView extends FrameLayout {
 
             addView(card, lp);
         }
-
-        addView(placementOverlay);
-        placementOverlay.setVisibility(View.GONE);
     }
     
     private static class BlockInfo {
@@ -260,26 +247,6 @@ public class DayTimelineView extends FrameLayout {
             canvas.drawText(h + "h", 8f, y + labelPaint.getTextSize(), labelPaint);
         }
         canvas.drawLine(labelGutterPx, 0, labelGutterPx, totalHeight, gridPaint);
-    }
-
-    /**
-     * Met à jour l'affichage de l'overlay d'aperçu
-     */
-    private void updatePlacementOverlay(int targetStartMinutes, int taskDurationMinutes) {
-        int overlayTop = Math.round((targetStartMinutes - dayStartMin) * pxPerMinute);
-        int overlayHeight = Math.round(taskDurationMinutes * pxPerMinute);
-
-        FrameLayout.LayoutParams overlayLp = new FrameLayout.LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                overlayHeight
-        );
-        overlayLp.leftMargin = labelGutterPx + (int) (4 * getResources().getDisplayMetrics().density);
-        overlayLp.rightMargin = (int) (8 * getResources().getDisplayMetrics().density);
-        overlayLp.topMargin = overlayTop;
-
-        placementOverlay.setLayoutParams(overlayLp);
-        placementOverlay.setVisibility(View.VISIBLE);
-        placementOverlay.bringToFront();
     }
 
     private int clampTop(int top, int height) {
