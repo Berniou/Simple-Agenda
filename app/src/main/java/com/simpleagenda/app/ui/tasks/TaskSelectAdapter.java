@@ -28,6 +28,7 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
 
     public interface Listener {
         void onSelectionChanged();
+        boolean canSelectTask(@NonNull Task task, int nextSelectedCount, int nextSelectedHours);
     }
 
     private final List<Task> items = new ArrayList<>();
@@ -114,9 +115,20 @@ public class TaskSelectAdapter extends RecyclerView.Adapter<TaskSelectAdapter.Ho
         holder.itemView.setOnClickListener(v -> {
             if (selected.contains(t.getId())) {
                 selected.remove(t.getId());
-            } else {
-                selected.add(t.getId());
+                notifyItemChanged(position);
+                if (listener != null) {
+                    listener.onSelectionChanged();
+                }
+                return;
             }
+
+            int nextSelectedCount = selected.size() + 1;
+            int nextSelectedHours = selectedDurationHours() + t.getDurationHours();
+            if (listener != null && !listener.canSelectTask(t, nextSelectedCount, nextSelectedHours)) {
+                return;
+            }
+
+            selected.add(t.getId());
             notifyItemChanged(position);
             if (listener != null) {
                 listener.onSelectionChanged();

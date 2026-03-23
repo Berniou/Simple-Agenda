@@ -77,7 +77,25 @@ public class PlanningFragment extends Fragment {
         binding.recyclerUnscheduled.setAdapter(unscheduledAdapter);
         binding.recyclerUnscheduled.setNestedScrollingEnabled(false);
 
-        selectAdapter.setListener(this::updateSummaryFromSelection);
+        selectAdapter.setListener(new TaskSelectAdapter.Listener() {
+            @Override
+            public void onSelectionChanged() {
+                updateSummaryFromSelection();
+            }
+
+            @Override
+            public boolean canSelectTask(@NonNull Task task, int nextSelectedCount, int nextSelectedHours) {
+                if (nextSelectedCount > MAX_TASKS_PER_DAY) {
+                    Toast.makeText(requireContext(), R.string.error_max_tasks_reached, Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                if (nextSelectedHours > MAX_HOURS_PER_DAY) {
+                    Toast.makeText(requireContext(), R.string.error_max_hours_reached, Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+                return true;
+            }
+        });
 
         unscheduledAdapter.setDragPermission(taskId -> selectAdapter.getSelectedIds().contains(taskId));
 
