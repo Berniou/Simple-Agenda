@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fillViewport="true"
+    tools:context=".ui.stats.StatsFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_4">
+
+        <!-- Header -->
+        <TextView
+            style="@style/TextHeadlineMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/spacing_6"
+            android:text="Statistics" />
+
+        <!-- Stats Grid -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Total Tasks -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_4"
+                android:background="@color/surface_container_lowest"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_4">
+
+                <TextView
+                    style="@style/TextLabelMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_2"
+                    android:text="Total Tasks" />
+
+                <TextView
+                    android:id="@+id/text_total_tasks"
+                    style="@style/TextDisplaySmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/primary"
+                    tools:text="24" />
+
+            </LinearLayout>
+
+            <!-- Completed Tasks -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_4"
+                android:background="@color/surface_container_lowest"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_4">
+
+                <TextView
+                    style="@style/TextLabelMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_2"
+                    android:text="Completed Tasks" />
+
+                <TextView
+                    android:id="@+id/text_completed_tasks"
+                    style="@style/TextDisplaySmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/task_green"
+                    tools:text="18" />
+
+            </LinearLayout>
+
+            <!-- Today's Tasks -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_4"
+                android:background="@color/surface_container_lowest"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_4">
+
+                <TextView
+                    style="@style/TextLabelMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_2"
+                    android:text="Today's Tasks" />
+
+                <TextView
+                    android:id="@+id/text_today_tasks"
+                    style="@style/TextDisplaySmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/task_orange"
+                    tools:text="5" />
+
+            </LinearLayout>
+
+            <!-- Completion Rate -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_4"
+                android:background="@color/surface_container_lowest"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_4">
+
+                <TextView
+                    style="@style/TextLabelMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_2"
+                    android:text="Completion Rate" />
+
+                <TextView
+                    android:id="@+id/text_completion_rate"
+                    style="@style/TextDisplaySmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/primary"
+                    tools:text="75%" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

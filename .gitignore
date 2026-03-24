@@ -1,0 +1,41 @@
+# Fichiers machine / SDK Android
+local.properties
+*.iml
+
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Android Studio / IntelliJ
+.idea/
+.cxx/
+.externalNativeBuild/
+captures/
+
+# Keystores (ne jamais versionner les clés de signature)
+*.jks
+*.keystore
+
+# Logs & caches
+*.log
+*.hprof
+.navigation/
+*.swp
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Kotlin (si tu ajoutes du Kotlin plus tard)
+.kotlin/
+
+# NDK
+obj/

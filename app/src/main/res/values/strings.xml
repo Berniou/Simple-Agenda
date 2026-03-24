@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Simple Agenda</string>
+    <string name="navigation_agenda">Agenda</string>
+    <string name="navigation_calendar">Calendar</string>
+    <string name="navigation_add">Add</string>
+    <string name="navigation_stats">Stats</string>
+    <string name="navigation_settings">Settings</string>
+    
+    <!-- Task related strings -->
+    <string name="add_task">Add Task</string>
+    <string name="task_title">Task Title</string>
+    <string name="task_description">Description</string>
+    <string name="task_time">Time</string>
+    <string name="task_category">Category</string>
+    <string name="save_task">Save Task</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_task">Delete Task</string>
+    <string name="edit_task">Edit Task</string>
+    
+    <!-- Time related strings -->
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="yesterday">Yesterday</string>
+    
+    <!-- Content descriptions -->
+    <string name="cd_add_task">Add new task</string>
+    <string name="cd_task_completed">Task completed</string>
+    <string name="cd_category_indicator">Category color indicator</string>
+</resources>

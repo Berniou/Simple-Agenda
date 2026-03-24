@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Typography Styles -->
+    <style name="TextDisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:textSize">@dimen/text_display_lg</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/on_surface</item>
+    </style>
+    
+    <style name="TextDisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:textSize">@dimen/text_display_sm</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/on_surface</item>
+    </style>
+    
+    <style name="TextHeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textSize">@dimen/text_headline_md</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/on_surface</item>
+    </style>
+    
+    <style name="TextTitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">@dimen/text_title_lg</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/on_surface</item>
+    </style>
+    
+    <style name="TextTitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">@dimen/text_title_md</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/on_surface</item>
+    </style>
+    
+    <style name="TextBodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">@dimen/text_body_md</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/on_surface</item>
+    </style>
+    
+    <style name="TextBodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">@dimen/text_body_sm</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/on_surface_variant</item>
+    </style>
+    
+    <style name="TextLabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">@dimen/text_label_md</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/on_surface_variant</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+    
+    <!-- Component Styles -->
+    <style name="TaskCard" parent="">
+        <item name="android:background">@color/surface_container_lowest</item>
+        <item name="android:layout_marginStart">@dimen/spacing_3</item>
+        <item name="android:layout_marginEnd">@dimen/spacing_3</item>
+        <item name="android:layout_marginBottom">@dimen/spacing_3</item>
+        <item name="android:padding">@dimen/spacing_4</item>
+        <item name="cardCornerRadius">@dimen/corner_radius_md</item>
+        <item name="cardElevation">0dp</item>
+    </style>
+    
+    <style name="TimeSlotLabel" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">@dimen/text_label_md</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/on_surface_variant</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+    
+    <style name="PrimaryButton" parent="Widget.Material3.Button">
+        <item name="android:backgroundTint">@color/primary</item>
+        <item name="android:textColor">@color/on_primary</item>
+        <item name="cornerRadius">@dimen/corner_radius_md</item>
+    </style>
+    
+    <style name="SurfaceButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:backgroundTint">@color/surface_container_lowest</item>
+        <item name="android:textColor">@color/on_surface</item>
+        <item name="strokeColor">@color/outline_variant</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cornerRadius">@dimen/corner_radius_md</item>
+    </style>
+    
+    <style name="FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="backgroundTint">@color/primary</item>
+        <item name="tint">@color/on_primary</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Material3.SmallComponent</item>
+    </style>
+</resources>

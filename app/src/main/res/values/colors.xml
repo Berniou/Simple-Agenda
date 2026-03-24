@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors -->
+    <color name="primary">#16658e</color>
+    <color name="primary_container">#87c8f6</color>
+    <color name="on_primary">#ffffff</color>
+    <color name="on_primary_container">#001d2d</color>
+    
+    <!-- Secondary Colors -->
+    <color name="secondary">#4f6352</color>
+    <color name="secondary_container">#d0e8d0</color>
+    <color name="on_secondary">#ffffff</color>
+    <color name="on_secondary_container">#0c1f11</color>
+    
+    <!-- Tertiary Colors -->
+    <color name="tertiary">#65587b</color>
+    <color name="tertiary_container">#eedcff</color>
+    <color name="on_tertiary">#ffffff</color>
+    <color name="on_tertiary_container">#201634</color>
+    
+    <!-- Surface Colors -->
+    <color name="background">#f7f9fb</color>
+    <color name="surface">#eaeff2</color>
+    <color name="surface_container">#eaeff2</color>
+    <color name="surface_container_low">#f0f4f7</color>
+    <color name="surface_container_high">#dfe4e8</color>
+    <color name="surface_container_highest">#d9dfe3</color>
+    <color name="surface_container_lowest">#ffffff</color>
+    
+    <!-- On Surface Colors -->
+    <color name="on_surface">#2c3437</color>
+    <color name="on_surface_variant">#596064</color>
+    <color name="on_surface_fixed">#eaeff2</color>
+    <color name="on_surface_fixed_dim">#c4c7ca</color>
+    <color name="on_surface_fixed_variant">#596064</color>
+    
+    <!-- Outline Colors -->
+    <color name="outline">#acb3b7</color>
+    <color name="outline_variant">#dfe4e8</color>
+    
+    <!-- Task Category Colors -->
+    <color name="task_blue">#87c8f6</color>
+    <color name="task_green">#d0e8d0</color>
+    <color name="task_orange">#eedcff</color>
+    
+    <!-- Special Colors -->
+    <color name="primary_fixed_dim">#87c8f6</color>
+    
+    <!-- Error Color -->
+    <color name="error">#dc362e</color>
+</resources>
