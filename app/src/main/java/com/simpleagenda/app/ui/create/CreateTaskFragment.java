@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +15,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.simpleagenda.app.R;
 import com.simpleagenda.app.data.database.AppDatabase;
 import com.simpleagenda.app.data.model.TaskCategory;
@@ -29,9 +32,12 @@ public class CreateTaskFragment extends Fragment {
     private RecyclerView recyclerViewTimeBlocks;
     private EditText editTaskTitle;
     private EditText editTaskDescription;
-    private TextView selectedCategory;
+    private RadioGroup radioGroupDuration;
+    private ChipGroup chipGroupCategory;
     private Button buttonSave;
     private Button buttonClear;
+    private TaskCategory selectedCategory = TaskCategory.BLUE;
+    private int selectedDuration = 1;
 
     @Nullable
     @Override
@@ -52,7 +58,8 @@ public class CreateTaskFragment extends Fragment {
         recyclerViewTimeBlocks = view.findViewById(R.id.recycler_view_time_blocks);
         editTaskTitle = view.findViewById(R.id.edit_task_title);
         editTaskDescription = view.findViewById(R.id.edit_task_description);
-        selectedCategory = view.findViewById(R.id.selected_category);
+        radioGroupDuration = view.findViewById(R.id.radio_group_duration);
+        chipGroupCategory = view.findViewById(R.id.chip_group_category);
         buttonSave = view.findViewById(R.id.button_save);
         buttonClear = view.findViewById(R.id.button_clear);
         
@@ -60,15 +67,33 @@ public class CreateTaskFragment extends Fragment {
         recyclerViewTimeBlocks.setLayoutManager(new GridLayoutManager(getContext(), 4)); // 4 colonnes pour les heures
         recyclerViewTimeBlocks.setAdapter(timeBlockAdapter);
         
-        timeBlockAdapter.setOnTimeBlockClickListener(timeBlock -> {
-            // Afficher les détails du bloc horaire
-            showTimeBlockDetails(timeBlock);
-        });
-        
+        timeBlockAdapter.setOnTimeBlockClickListener(this::showTimeBlockDetails);
         timeBlockAdapter.setOnTimeBlockLongClickListener(timeBlock -> {
-            // Supprimer le bloc horaire
             viewModel.deleteTimeBlock(timeBlock);
         });
+        
+        // Setup duration selection
+        radioGroupDuration.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.radio_1h) selectedDuration = 1;
+            else if (checkedId == R.id.radio_2h) selectedDuration = 2;
+            else if (checkedId == R.id.radio_3h) selectedDuration = 3;
+            else if (checkedId == R.id.radio_4h) selectedDuration = 4;
+        });
+        
+        // Setup category selection
+        chipGroupCategory.setOnCheckedChangeListener((group, checkedId) -> {
+            Chip selectedChip = group.findViewById(checkedId);
+            if (selectedChip != null) {
+                if (checkedId == R.id.chip_blue) selectedCategory = TaskCategory.BLUE;
+                else if (checkedId == R.id.chip_green) selectedCategory = TaskCategory.GREEN;
+                else if (checkedId == R.id.chip_orange) selectedCategory = TaskCategory.ORANGE;
+            }
+        });
+        
+        // Select 1h by default
+        radioGroupDuration.check(R.id.radio_1h);
+        // Select blue by default
+        chipGroupCategory.check(R.id.chip_blue);
     }
 
     private void setupViewModel() {
@@ -112,7 +137,11 @@ public class CreateTaskFragment extends Fragment {
     private void clearCurrentTask() {
         editTaskTitle.setText("");
         editTaskDescription.setText("");
-        selectedCategory.setText("Aucune");
+        // Reset selections to defaults
+        radioGroupDuration.check(R.id.radio_1h);
+        chipGroupCategory.check(R.id.chip_blue);
+        selectedDuration = 1;
+        selectedCategory = TaskCategory.BLUE;
         viewModel.clearCurrentTimeBlocks();
     }
 

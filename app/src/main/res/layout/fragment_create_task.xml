@@ -83,31 +83,104 @@
 
             </LinearLayout>
 
-            <!-- Category Selection -->
+            <!-- Duration Selection -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/spacing_4"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <TextView
                     style="@style/TextLabelMedium"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/spacing_3"
-                    android:text="Catégorie:" />
+                    android:layout_marginBottom="@dimen/spacing_2"
+                    android:text="Durée:" />
+
+                <RadioGroup
+                    android:id="@+id/radio_group_duration"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/radio_1h"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="1h" />
+
+                    <RadioButton
+                        android:id="@+id/radio_2h"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="2h" />
+
+                    <RadioButton
+                        android:id="@+id/radio_3h"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="3h" />
+
+                    <RadioButton
+                        android:id="@+id/radio_4h"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="4h" />
+
+                </RadioGroup>
+
+            </LinearLayout>
+
+            <!-- Category Selection -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_4"
+                android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/selected_category"
-                    style="@style/TextBodyMedium"
-                    android:layout_width="0dp"
+                    style="@style/TextLabelMedium"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@color/surface_container_low"
-                    android:padding="@dimen/spacing_2"
-                    android:text="Aucune"
-                    android:textColor="@color/on_surface_variant" />
+                    android:layout_marginBottom="@dimen/spacing_2"
+                    android:text="Catégorie:" />
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chip_group_category"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_2"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_blue"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bleu"
+                        app:chipBackgroundColor="@color/task_blue" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_green"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Vert"
+                        app:chipBackgroundColor="@color/task_green" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_orange"
+                        style="@style/Widget.Material3.Chip.Filter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Orange"
+                        app:chipBackgroundColor="@color/task_orange" />
+
+                </com.google.android.material.chip.ChipGroup>
 
             </LinearLayout>
 

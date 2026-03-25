@@ -51,11 +51,21 @@ public class CreateTaskViewModel extends ViewModel {
         timeBlock.setTitle(taskTitle);
         timeBlock.setDescription(taskDescription);
         timeBlock.setHour(9); // 9h par défaut
-        timeBlock.setDuration(1); // 1 heure par défaut
-        timeBlock.setCategory(TaskCategory.BLUE);
+        timeBlock.setDuration(getSelectedDuration()); // Utiliser la durée sélectionnée
+        timeBlock.setCategory(getSelectedCategory()); // Utiliser la catégorie sélectionnée
         timeBlock.setScheduled(false); // Non planifié par défaut
         
         repository.insertTimeBlock(timeBlock);
+    }
+    
+    private int getSelectedDuration() {
+        // TODO: Récupérer la durée depuis le fragment
+        return 1; // 1h par défaut
+    }
+    
+    private TaskCategory getSelectedCategory() {
+        // TODO: Récupérer la catégorie depuis le fragment
+        return TaskCategory.BLUE; // Bleu par défaut
     }
     
     public void clearCurrentTimeBlocks() {
