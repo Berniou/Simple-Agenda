@@ -2,28 +2,28 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/navigation_agenda"
-        android:icon="@drawable/ic_agenda"
-        android:title="Agenda" />
-
-    <item
-        android:id="@+id/navigation_calendar"
-        android:icon="@drawable/ic_calendar"
-        android:title="Calendar" />
-
-    <item
-        android:id="@+id/navigation_add"
+        android:id="@+id/navigation_create"
         android:icon="@drawable/ic_add"
-        android:title="Add" />
+        android:title="Créer" />
 
     <item
-        android:id="@+id/navigation_stats"
-        android:icon="@drawable/ic_stats"
-        android:title="Stats" />
+        android:id="@+id/navigation_schedule"
+        android:icon="@drawable/ic_schedule"
+        android:title="Planifier" />
+
+    <item
+        android:id="@+id/navigation_select"
+        android:icon="@drawable/ic_select"
+        android:title="Sélectionner" />
+
+    <item
+        android:id="@+id/navigation_unplanned"
+        android:icon="@drawable/ic_unplanned"
+        android:title="Non planifié" />
 
     <item
         android:id="@+id/navigation_settings"
         android:icon="@drawable/ic_settings"
-        android:title="Settings" />
+        android:title="Paramètres" />
 
 </menu>

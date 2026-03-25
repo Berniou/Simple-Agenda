@@ -3,36 +3,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/navigation_agenda">
+    app:startDestination="@id/navigation_create">
 
     <fragment
-        android:id="@+id/navigation_agenda"
-        android:name="com.simpleagenda.app.ui.agenda.AgendaFragment"
-        android:label="Agenda"
-        tools:layout="@layout/fragment_agenda" />
+        android:id="@+id/navigation_create"
+        android:name="com.simpleagenda.app.ui.create.CreateTaskFragment"
+        android:label="Créer"
+        tools:layout="@layout/fragment_create_task" />
 
     <fragment
-        android:id="@+id/navigation_calendar"
-        android:name="com.simpleagenda.app.ui.calendar.CalendarFragment"
-        android:label="Calendar"
-        tools:layout="@layout/fragment_calendar" />
+        android:id="@+id/navigation_schedule"
+        android:name="com.simpleagenda.app.ui.schedule.ScheduleFragment"
+        android:label="Planifier"
+        tools:layout="@layout/fragment_schedule" />
 
     <fragment
-        android:id="@+id/navigation_add"
-        android:name="com.simpleagenda.app.ui.addtask.AddTaskFragment"
-        android:label="Add Task"
-        tools:layout="@layout/fragment_add_task" />
+        android:id="@+id/navigation_select"
+        android:name="com.simpleagenda.app.ui.select.SelectTaskFragment"
+        android:label="Sélectionner"
+        tools:layout="@layout/fragment_select_task" />
 
     <fragment
-        android:id="@+id/navigation_stats"
-        android:name="com.simpleagenda.app.ui.stats.StatsFragment"
-        android:label="Stats"
-        tools:layout="@layout/fragment_stats" />
+        android:id="@+id/navigation_unplanned"
+        android:name="com.simpleagenda.app.ui.unplanned.UnplannedFragment"
+        android:label="Non planifié"
+        tools:layout="@layout/fragment_unplanned" />
 
     <fragment
         android:id="@+id/navigation_settings"
         android:name="com.simpleagenda.app.ui.settings.SettingsFragment"
-        android:label="Settings"
+        android:label="Paramètres"
         tools:layout="@layout/fragment_settings" />
 
 </navigation>

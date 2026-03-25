@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:layout_margin="@dimen/spacing_1"
+    app:cardCornerRadius="@dimen/corner_radius_md"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:id="@+id/background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="@dimen/spacing_3"
+        android:background="@drawable/draggable_background">
+
+        <!-- Category Indicator -->
+        <View
+            android:id="@+id/category_indicator"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="@dimen/spacing_2"
+            android:background="@color/task_blue" />
+
+        <!-- Content -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/text_hour"
+                style="@style/TextLabelMedium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_1"
+                android:textColor="@color/on_surface_variant"
+                android:textAllCaps="true"
+                tools:text="09h" />
+
+            <TextView
+                android:id="@+id/text_title"
+                style="@style/TextBodySmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/on_surface"
+                tools:text="Réunion équipe" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

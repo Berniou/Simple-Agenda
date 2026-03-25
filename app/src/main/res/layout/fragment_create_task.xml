@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".ui.create.CreateTaskFragment">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/spacing_4">
+
+            <!-- Header -->
+            <TextView
+                style="@style/TextHeadlineMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_6"
+                android:text="Créer une tâche"
+                android:textAlignment="center" />
+
+            <!-- Task Input Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_6"
+                android:background="@color/surface_container_lowest"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_4">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_4"
+                    app:boxBackgroundColor="@color/surface_container_high"
+                    app:boxCornerRadiusBottomEnd="@dimen/corner_radius_md"
+                    app:boxCornerRadiusBottomStart="@dimen/corner_radius_md"
+                    app:boxCornerRadiusTopEnd="@dimen/corner_radius_md"
+                    app:boxCornerRadiusTopStart="@dimen/corner_radius_md"
+                    app:boxStrokeWidth="0dp"
+                    app:hintTextColor="@color/on_surface_variant">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_task_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Titre de la tâche"
+                        android:inputType="text"
+                        android:padding="@dimen/spacing_3" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_4"
+                    app:boxBackgroundColor="@color/surface_container_high"
+                    app:boxCornerRadiusBottomEnd="@dimen/corner_radius_md"
+                    app:boxCornerRadiusBottomStart="@dimen/corner_radius_md"
+                    app:boxCornerRadiusTopEnd="@dimen/corner_radius_md"
+                    app:boxCornerRadiusTopStart="@dimen/corner_radius_md"
+                    app:boxStrokeWidth="0dp"
+                    app:hintTextColor="@color/on_surface_variant">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edit_task_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:gravity="top"
+                        android:hint="Description"
+                        android:inputType="textMultiLine"
+                        android:padding="@dimen/spacing_3" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <!-- Category Selection -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_4"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/TextLabelMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/spacing_3"
+                    android:text="Catégorie:" />
+
+                <TextView
+                    android:id="@+id/selected_category"
+                    style="@style/TextBodyMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@color/surface_container_low"
+                    android:padding="@dimen/spacing_2"
+                    android:text="Aucune"
+                    android:textColor="@color/on_surface_variant" />
+
+            </LinearLayout>
+
+            <!-- Time Blocks Grid -->
+            <TextView
+                style="@style/TextLabelMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_3"
+                android:text="Blocs horaires (cliquez pour ajouter)" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_time_blocks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_6"
+                android:clipToPadding="false"
+                tools:listitem="@layout/item_time_block" />
+
+            <!-- Action Buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_4"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/button_clear"
+                    style="@style/SurfaceButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/spacing_3"
+                    android:layout_weight="1"
+                    android:text="Effacer" />
+
+                <Button
+                    android:id="@+id/button_save"
+                    style="@style/PrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_3"
+                    android:layout_weight="1"
+                    android:text="Enregistrer" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
