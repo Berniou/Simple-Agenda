@@ -29,10 +29,5 @@
         android:label="Non planifié"
         tools:layout="@layout/fragment_unplanned" />
 
-    <fragment
-        android:id="@+id/navigation_settings"
-        android:name="com.simpleagenda.app.ui.settings.SettingsFragment"
-        android:label="Paramètres"
-        tools:layout="@layout/fragment_settings" />
-
+    
 </navigation>

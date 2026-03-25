@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.simpleagenda.app.data.model.TimeBlock;
 import com.simpleagenda.app.data.repository.TimeBlockRepository;
 
+import java.util.List;
+
 public class UnplannedViewModel extends ViewModel {
     private final TimeBlockRepository repository;
     private LiveData<List<TimeBlock>> unscheduledTimeBlocks;

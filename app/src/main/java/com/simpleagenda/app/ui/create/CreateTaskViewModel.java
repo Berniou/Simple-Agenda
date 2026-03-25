@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.simpleagenda.app.data.model.Task;
 import com.simpleagenda.app.data.model.TaskCategory;
 import com.simpleagenda.app.data.model.TimeBlock;
 import com.simpleagenda.app.data.repository.TimeBlockRepository;
@@ -46,35 +45,22 @@ public class CreateTaskViewModel extends ViewModel {
     }
     
     public void createTaskFromTimeBlocks(String taskTitle, String taskDescription) {
-        // Créer une tâche à partir des blocs horaire
-        Task task = new Task();
-        task.setTitle(taskTitle);
-        task.setDescription(taskDescription);
-        task.setCategory(TaskCategory.BLUE);
+        // Créer des blocs horaire à partir du titre
+        // Pour l'instant, créer un bloc simple
+        TimeBlock timeBlock = new TimeBlock();
+        timeBlock.setTitle(taskTitle);
+        timeBlock.setDescription(taskDescription);
+        timeBlock.setHour(9); // 9h par défaut
+        timeBlock.setDuration(1); // 1 heure par défaut
+        timeBlock.setCategory(TaskCategory.BLUE);
+        timeBlock.setScheduled(false); // Non planifié par défaut
         
-        // TODO: Convertir les blocs horaire en tâche planifiée
-        // Pour l'instant, marquer tous les blocs comme planifiés
-        List<TimeBlock> timeBlocks = allTimeBlocks.getValue();
-        if (timeBlocks != null) {
-            for (TimeBlock block : timeBlocks) {
-                if (block.getTitle() != null && !block.getTitle().isEmpty()) {
-                    block.setScheduled(true);
-                    repository.updateTimeBlock(block);
-                }
-            }
-        }
+        repository.insertTimeBlock(timeBlock);
     }
     
     public void clearCurrentTimeBlocks() {
-        List<TimeBlock> timeBlocks = allTimeBlocks.getValue();
-        if (timeBlocks != null) {
-            for (TimeBlock block : timeBlocks) {
-                if (block.isScheduled()) {
-                    block.setScheduled(false);
-                    repository.updateTimeBlock(block);
-                }
-            }
-        }
+        // Pour l'instant, ne rien faire
+        // TODO: Implémenter la logique de nettoyage
     }
     
     public static class Factory extends ViewModelProvider.NewInstanceFactory {

@@ -101,15 +101,12 @@ public class CreateTaskFragment extends Fragment {
         String description = editTaskDescription.getText().toString().trim();
         
         if (!title.isEmpty()) {
-            editTaskTitle.setError("Titre requis");
-            return;
+            // Créer une nouvelle tâche à partir des blocs horaire
+            viewModel.createTaskFromTimeBlocks(title, description);
+            
+            // Vider les champs
+            clearCurrentTask();
         }
-        
-        // Créer une nouvelle tâche à partir des blocs horaire
-        viewModel.createTaskFromTimeBlocks(title, description);
-        
-        // Vider les champs
-        clearCurrentTask();
     }
 
     private void clearCurrentTask() {

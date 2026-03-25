@@ -4,6 +4,8 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
+import com.simpleagenda.app.data.Converters;
+
 import java.util.Date;
 
 @Entity(tableName = "time_blocks")

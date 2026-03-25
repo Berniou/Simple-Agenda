@@ -21,9 +21,5 @@
         android:icon="@drawable/ic_unplanned"
         android:title="Non planifié" />
 
-    <item
-        android:id="@+id/navigation_settings"
-        android:icon="@drawable/ic_settings"
-        android:title="Paramètres" />
-
+    
 </menu>
