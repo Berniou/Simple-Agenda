@@ -39,6 +39,10 @@
         <!-- Navigation bar -->
         <item name="android:navigationBarColor">@color/surface_container_lowest</item>
         <item name="android:windowLightNavigationBar">true</item>
+        
+        <!-- Bottom navigation colors -->
+        <item name="android:textColorPrimary">@color/on_surface</item>
+        <item name="android:textColorSecondary">@color/on_surface_variant</item>
     </style>
     
     <style name="Theme.SimpleAgenda.NoActionBar">

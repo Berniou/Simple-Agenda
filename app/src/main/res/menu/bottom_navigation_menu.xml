@@ -20,6 +20,5 @@
         android:id="@+id/navigation_unplanned"
         android:icon="@drawable/ic_unplanned"
         android:title="Non planifié" />
-
     
 </menu>

@@ -23,7 +23,7 @@
     <dimen name="fab_size">56dp</dimen>
     <dimen name="task_card_min_height">60dp</dimen>
     <dimen name="time_slot_width">48dp</dimen>
-    <dimen name="bottom_nav_height">56dp</dimen>
+    <dimen name="bottom_nav_height">80dp</dimen>
     
     <!-- Typography scale -->
     <dimen name="text_display_xs">24sp</dimen>

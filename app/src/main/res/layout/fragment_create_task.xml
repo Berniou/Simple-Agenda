@@ -184,22 +184,7 @@
 
             </LinearLayout>
 
-            <!-- Time Blocks Grid -->
-            <TextView
-                style="@style/TextLabelMedium"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_3"
-                android:text="Blocs horaires (cliquez pour ajouter)" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view_time_blocks"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_6"
-                android:clipToPadding="false"
-                tools:listitem="@layout/item_time_block" />
-
+            
             <!-- Action Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
