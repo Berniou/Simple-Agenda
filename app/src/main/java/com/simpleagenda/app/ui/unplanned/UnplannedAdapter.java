@@ -69,13 +69,13 @@ public class UnplannedAdapter extends ListAdapter<TimeBlock, UnplannedAdapter.Un
     class UnplannedViewHolder extends RecyclerView.ViewHolder {
         private TextView textTitle;
         private TextView textDuration;
-        private View categoryIndicator;
+        private View categoryContainer;
         
         public UnplannedViewHolder(@NonNull View itemView) {
             super(itemView);
             textTitle = itemView.findViewById(R.id.text_title);
             textDuration = itemView.findViewById(R.id.text_duration);
-            categoryIndicator = itemView.findViewById(R.id.category_indicator);
+            categoryContainer = itemView.findViewById(R.id.category_container);
         }
         
         public void bind(TimeBlock timeBlock) {
@@ -85,9 +85,9 @@ public class UnplannedAdapter extends ListAdapter<TimeBlock, UnplannedAdapter.Un
             // Durée
             textDuration.setText(timeBlock.getDuration() + "h");
             
-            // Couleur de catégorie
+            // Couleur de catégorie - fond de la carte entière
             int colorRes = getCategoryColor(timeBlock.getCategory());
-            categoryIndicator.setBackgroundColor(itemView.getContext().getColor(colorRes));
+            categoryContainer.setBackgroundColor(itemView.getContext().getColor(colorRes));
             
             // Click listener
             itemView.setOnClickListener(v -> {

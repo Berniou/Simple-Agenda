@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -22,6 +23,7 @@ public class UnplannedFragment extends Fragment {
     private UnplannedViewModel viewModel;
     private UnplannedAdapter unplannedAdapter;
     private RecyclerView recyclerViewUnplanned;
+    private TextView textTaskCount;
 
     @Nullable
     @Override
@@ -39,6 +41,7 @@ public class UnplannedFragment extends Fragment {
 
     private void setupViews(View view) {
         recyclerViewUnplanned = view.findViewById(R.id.recycler_view_unplanned);
+        textTaskCount = view.findViewById(R.id.text_task_count);
         
         unplannedAdapter = new UnplannedAdapter();
         recyclerViewUnplanned.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -60,7 +63,18 @@ public class UnplannedFragment extends Fragment {
         
         viewModel.getUnscheduledTimeBlocks().observe(getViewLifecycleOwner(), timeBlocks -> {
             unplannedAdapter.submitList(timeBlocks);
+            updateTaskCount(timeBlocks.size());
         });
+    }
+
+    private void updateTaskCount(int count) {
+        if (count == 0) {
+            textTaskCount.setText("0 tâche");
+        } else if (count == 1) {
+            textTaskCount.setText("1 tâche");
+        } else {
+            textTaskCount.setText(count + " tâches");
+        }
     }
 
     private void onTimeBlockClicked(TimeBlock timeBlock) {

@@ -18,13 +18,31 @@
             android:padding="@dimen/spacing_4">
 
             <!-- Header -->
-            <TextView
-                style="@style/TextHeadlineMedium"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/spacing_6"
-                android:text="Tâches non planifiées"
-                android:textAlignment="center" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/TextHeadlineMedium"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Backlog" />
+
+                <TextView
+                    android:id="@+id/text_task_count"
+                    style="@style/TextBodyMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/surface_container_low"
+                    android:padding="@dimen/spacing_2"
+                    android:textColor="@color/on_surface_variant"
+                    tools:text="0 tâches" />
+
+            </LinearLayout>
 
             <!-- Task List -->
             <androidx.recyclerview.widget.RecyclerView
